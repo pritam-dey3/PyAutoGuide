@@ -1,0 +1,20 @@
+[project]
+name = "pyautoscene"
+version = "0.1.0"
+description = "Advance GUI automation"
+readme = "README.md"
+authors = [
+    { name = "pritam-dey3", email = "pritam.pritamdey.984@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pillow>=11.3.0",
+    "pyautogui>=0.9.54",
+]
+
+[project.scripts]
+pyautoscene = "pyautoscene:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
