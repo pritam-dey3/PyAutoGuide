@@ -16,8 +16,11 @@ def create_session_class(scenes: list[Scene]) -> StateMachine:
         for action_name, action_info in scene.actions.items():
             target_scene = action_info["transitions_to"]
             if target_scene is not None:
-                transitions[action_name] = scene.to(target_scene, event=action_name)
-    print(transitions)
+                event_name = f"event_{action_name}"
+                new_transition = scene.to(target_scene, event=event_name)
+                new_transition.on(action_info["action"])
+                transitions[event_name] = new_transition
+
     SessionSM = StateMachineMetaclass(
         "SessionSM",
         (StateMachine,),
@@ -39,7 +42,7 @@ class Session:
         self._sm = create_session_class(scenes)
 
     @property
-    def current_state(self) -> State:
+    def current_scene(self) -> State:
         """Get the current state."""
         return self._sm.current_state
 
@@ -71,42 +74,11 @@ class Session:
 
     def invoke(self, action_name: str, **kwargs):
         """Invoke an action in the current scene."""
-        current_state = self.current_state
-        current_scene_name = current_state.name
-        current_scene = self._scenes_dict[current_scene_name]
-
-        action_info = current_scene.get_action(action_name)
-
-        if action_info is None:
-            raise ValueError(
-                f"Action '{action_name}' not found in current scene '{current_scene_name}'"
-            )
-
-        # Execute the action function
-        action_function = action_info["action"]
-        result = action_function(**kwargs)
-
-        # Handle transition if specified using the state machine's event system
-        if action_info["transitions_to"] is not None:
-            # Try to use the state machine's transition if it exists
-            if hasattr(self._sm, action_name):
-                # Use the state machine's transition method
-                getattr(self._sm, action_name)()
-            else:
-                # Fallback to manual transition
-                target_scene = action_info["transitions_to"]
-                if target_scene is not None:
-                    self.goto(target_scene)
-
-        return result
-
-    def get_current_scene(self) -> Scene:
-        """Get the current scene."""
-        current_state_name = self.current_state.name
-        return self._scenes_dict[current_state_name]
+        action_event = f"event_{action_name}"
+        return self._sm.send(action_event, **kwargs)
 
     def __repr__(self):
-        current = self.get_current_scene()
+        current = self.current_scene
         current_name = current.name if current else "None"
         return (
             f"Session(scenes={list(self._scenes_dict.keys())}, current={current_name})"
