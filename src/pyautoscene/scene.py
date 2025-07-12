@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Callable, TypedDict
 
+from pyscreeze import Box
 from statemachine import State
 
 from pyautoscene.utils import is_valid_variable_name
 
-from .references import ReferenceElement
+from .references import ReferenceElement, ReferenceImage
 
 
 class ActionInfo(TypedDict):
@@ -49,6 +50,12 @@ class Scene(State):
     def get_action(self, action_name: str) -> ActionInfo | None:
         """Get an action by name."""
         return self.actions.get(action_name)
+
+    def is_on_screen(self, region: Box | None = None) -> bool:
+        """Check if any reference element is currently on screen."""
+        # TODO: Refactor after text recognition is implemented
+        elements = (elem for elem in self.elements if isinstance(elem, ReferenceImage))
+        return all(elem.is_visible(region) for elem in elements)
 
     def __repr__(self):
         return f"Scene({self.name!r}, elements={len(self.elements)})"

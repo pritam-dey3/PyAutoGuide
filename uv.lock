@@ -164,6 +164,15 @@ wheels = [
 ]
 
 [[package]]
+name = "networkx"
+version = "3.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6c/4f/ccdb8ad3a38e583f214547fd2f7ff1fc160c43a75af88e6aec213404b96a/networkx-3.5.tar.gz", hash = "sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037", size = 2471065, upload-time = "2025-05-29T11:35:07.804Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/8d/776adee7bbf76365fdd7f2552710282c79a4ead5d2a46408c9043a2b70ba/networkx-3.5-py3-none-any.whl", hash = "sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec", size = 2034406, upload-time = "2025-05-29T11:35:04.961Z" },
+]
+
+[[package]]
 name = "nodeenv"
 version = "1.9.1"
 source = { registry = "https://pypi.org/simple" }
@@ -377,29 +386,35 @@ name = "pyautoscene"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "networkx" },
     { name = "onnxruntime" },
     { name = "pillow" },
     { name = "pyautogui" },
-    { name = "python-statemachine" },
+    { name = "python-statemachine", extra = ["diagrams"] },
     { name = "rapidocr" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "pre-commit" },
+    { name = "types-networkx" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "networkx", specifier = ">=3.5" },
     { name = "onnxruntime", specifier = ">=1.22.0" },
     { name = "pillow", specifier = ">=11.3.0" },
     { name = "pyautogui", specifier = ">=0.9.54" },
-    { name = "python-statemachine", git = "https://github.com/fgmacedo/python-statemachine.git?rev=9a089edf61b4afd4abc08968b3cfa508fa332f7c" },
+    { name = "python-statemachine", extras = ["diagrams"], git = "https://github.com/fgmacedo/python-statemachine.git?rev=9a089edf61b4afd4abc08968b3cfa508fa332f7c" },
     { name = "rapidocr", specifier = ">=3.2.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pre-commit", specifier = ">=4.2.0" }]
+dev = [
+    { name = "pre-commit", specifier = ">=4.2.0" },
+    { name = "types-networkx", specifier = ">=3.5.0.20250712" },
+]
 
 [[package]]
 name = "pyclipper"
@@ -413,6 +428,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/31/10/c0bf140bee2844e2c0617fdcc8a4e8daf98e71710046b06034e6f1963404/pyclipper-1.3.0.post6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5c9c80b5c46eef38ba3f12dd818dc87f5f2a0853ba914b6f91b133232315f526", size = 962510, upload-time = "2024-10-18T12:22:27.573Z" },
     { url = "https://files.pythonhosted.org/packages/85/6f/8c6afc49b51b1bf16d5903ecd5aee657cf88f52c83cb5fabf771deeba728/pyclipper-1.3.0.post6-cp313-cp313-win32.whl", hash = "sha256:b15113ec4fc423b58e9ae80aa95cf5a0802f02d8f02a98a46af3d7d66ff0cc0e", size = 98836, upload-time = "2024-10-18T12:22:29.157Z" },
     { url = "https://files.pythonhosted.org/packages/d5/19/9ff4551b42f2068686c50c0d199072fa67aee57fc5cf86770cacf71efda3/pyclipper-1.3.0.post6-cp313-cp313-win_amd64.whl", hash = "sha256:e5ff68fa770ac654c7974fc78792978796f068bd274e95930c0691c31e192889", size = 109672, upload-time = "2024-10-18T12:22:30.411Z" },
+]
+
+[[package]]
+name = "pydot"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyparsing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/35/b17cb89ff865484c6a20ef46bf9d95a5f07328292578de0b295f4a6beec2/pydot-4.0.1.tar.gz", hash = "sha256:c2148f681c4a33e08bf0e26a9e5f8e4099a82e0e2a068098f32ce86577364ad5", size = 162594, upload-time = "2025-06-17T20:09:56.454Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/32/a7125fb28c4261a627f999d5fb4afff25b523800faed2c30979949d6facd/pydot-4.0.1-py3-none-any.whl", hash = "sha256:869c0efadd2708c0be1f916eb669f3d664ca684bc57ffb7ecc08e70d5e93fee6", size = 37087, upload-time = "2025-06-17T20:09:55.25Z" },
 ]
 
 [[package]]
@@ -474,6 +501,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyparsing"
+version = "3.2.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/22/f1129e69d94ffff626bdb5c835506b3a5b4f3d070f17ea295e12c2c6f60f/pyparsing-3.2.3.tar.gz", hash = "sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be", size = 1088608, upload-time = "2025-03-25T05:01:28.114Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/05/e7/df2285f3d08fee213f2d041540fa4fc9ca6c2d44cf36d3a035bf2a8d2bcc/pyparsing-3.2.3-py3-none-any.whl", hash = "sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf", size = 111120, upload-time = "2025-03-25T05:01:24.908Z" },
+]
+
+[[package]]
 name = "pyperclip"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -504,6 +540,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/ee/f0/cb456ac4f1a73723d
 name = "python-statemachine"
 version = "2.5.0"
 source = { git = "https://github.com/fgmacedo/python-statemachine.git?rev=9a089edf61b4afd4abc08968b3cfa508fa332f7c#9a089edf61b4afd4abc08968b3cfa508fa332f7c" }
+
+[package.optional-dependencies]
+diagrams = [
+    { name = "pydot" },
+]
 
 [[package]]
 name = "python3-xlib"
@@ -637,6 +678,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
+]
+
+[[package]]
+name = "types-networkx"
+version = "3.5.0.20250712"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/b3/e59b54e086ee20f97fb02d58896f49ee9b51fd45a4b26d7fb35405227d4f/types_networkx-3.5.0.20250712.tar.gz", hash = "sha256:7a85012d27617b6762ea42395783530dfbd37c99fa89123e001840ba801e9d4e", size = 65653, upload-time = "2025-07-12T03:19:13.981Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/04/37/89adad27b1653ad4c6cd9590a7db4d932384cc5b5450c8975ba2640aa05f/types_networkx-3.5.0.20250712-py3-none-any.whl", hash = "sha256:426246c2f09b88a9d7c302245ea55677a698e77281ce480781d336939ba65afb", size = 153228, upload-time = "2025-07-12T03:19:12.351Z" },
 ]
 
 [[package]]

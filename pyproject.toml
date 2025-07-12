@@ -3,10 +3,11 @@ authors = [
   {name = "pritam-dey3", email = "pritam.pritamdey.984@gmail.com"},
 ]
 dependencies = [
+  "networkx>=3.5",
   "onnxruntime>=1.22.0",
   "pillow>=11.3.0",
   "pyautogui>=0.9.54",
-  "python-statemachine",
+  "python-statemachine[diagrams]",
   "rapidocr>=3.2.0",
 ]
 description = "Advance GUI automation"
@@ -28,6 +29,7 @@ python-statemachine = {git = "https://github.com/fgmacedo/python-statemachine.gi
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
+    "types-networkx>=3.5.0.20250712",
 ]
 
 [tool.poe.tasks]

@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from typing import Callable
 
+import networkx as nx
+from pyscreeze import Box
 from statemachine import State, StateMachine
 from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
 from .scene import Scene
+
+
+class SceneRecognitionError(Exception):
+    pass
 
 
 def build_dynamic_state_machine(
@@ -39,6 +45,19 @@ def build_dynamic_state_machine(
     return session_sm, transitions, leaf_actions
 
 
+def get_current_scene(scenes: list[Scene], region: Box | None = None) -> Scene:
+    """Get the current scene from the list of scenes."""
+    current_scenes = [scene for scene in scenes if scene.is_on_screen(region)]
+    if len(current_scenes) == 1:
+        return current_scenes[0]
+    elif len(current_scenes) > 1:
+        raise SceneRecognitionError(
+            f"Multiple scenes are currently on screen.\n{' '.join(str(scene) for scene in current_scenes)}"
+        )
+    else:
+        raise SceneRecognitionError("No scene is currently on screen.")
+
+
 class Session:
     """A session manages the state machine for GUI automation scenes."""
 
@@ -50,37 +69,43 @@ class Session:
         self._sm, self.transitions, self.leaf_actions = build_dynamic_state_machine(
             scenes
         )
+        self.graph: nx.MultiDiGraph = nx.nx_pydot.from_pydot(self._sm._graph())
 
     @property
     def current_scene(self) -> State:
         """Get the current state."""
         return self._sm.current_state
 
-    def goto(self, target_scene):
+    def expect(self, target_scene: Scene, **kwargs):
         """Navigate to a specific scene."""
-        if target_scene is None:
-            raise ValueError("Cannot navigate to None scene")
+        if target_scene.is_on_screen():
+            return
 
-        if isinstance(target_scene, Scene):
-            scene_name = target_scene.name
-        else:
-            scene_name = str(target_scene)
+        present_scene = get_current_scene(self._scenes_list)
+        all_paths = list(
+            nx.all_simple_paths(
+                self.graph,
+                source=present_scene.name,
+                target=target_scene.name,
+            )
+        )
+        if len(all_paths) == 0:
+            raise SceneRecognitionError(
+                f"No path found from {present_scene.name} to {target_scene.name}"
+            )
+        elif len(all_paths) > 1:
+            raise SceneRecognitionError(
+                f"Multiple paths found from {present_scene.name} to {target_scene.name}"
+            )
 
-        if scene_name not in self._scenes_dict:
-            raise ValueError(f"Scene '{scene_name}' not found in session")
+        path = all_paths[0]
+        events: list[str] = [
+            self.graph.get_edge_data(path[i], path[i + 1])[0]["label"]  # type: ignore
+            for i in range(len(path) - 1)
+        ]
 
-        # Find the corresponding state in the state machine
-        target_state = None
-        for state in self._sm.states:
-            if state.name == scene_name:
-                target_state = state
-                break
-
-        if target_state:
-            # Force the current state - this works with the new implementation
-            self._sm.current_state = target_state
-        else:
-            raise ValueError(f"Could not find state for scene '{scene_name}'")
+        for event in events:
+            self._sm.send(event, **kwargs)
 
     def invoke(self, action_name: str, **kwargs):
         """Invoke an action in the current scene."""
