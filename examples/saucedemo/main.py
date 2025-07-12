@@ -45,6 +45,7 @@ def perform_login(username: str, password: str):
 def add_products_to_cart(target: str):
     """Adds products to the cart."""
     locate_and_click(f"references/{target}.png")
+    locate_and_click("references/add_to_cart_button.png")
 
 
 @dashboard.action(transitions_to=cart)

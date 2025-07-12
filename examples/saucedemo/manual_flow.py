@@ -44,6 +44,7 @@ def perform_login(username: str, password: str):
 def add_products_to_cart(target: str):
     """Adds products to the cart."""
     locate_and_click(f"examples/saucedemo/references/{target}.png")
+    locate_and_click("examples/saucedemo/references/add_to_cart_button.png")
 
 
 @dashboard.action(transitions_to=cart)
@@ -65,3 +66,7 @@ gui.hotkey("alt", "tab")
 print(f"{session.current_scene=}")
 session.invoke("perform_login", username="standard_user", password="secret_sauce")
 print(f"After login: {session._sm.current_state=}")
+session.invoke("add_products_to_cart", target="backpack")
+session.invoke("view_cart")
+print(f"After adding to cart: {session._sm.current_state=}")
+session.invoke("checkout")

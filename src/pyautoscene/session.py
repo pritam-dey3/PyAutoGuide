@@ -1,17 +1,23 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from statemachine import State, StateMachine
 from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
+from statemachine.transition_list import TransitionList
 
 from .scene import Scene
 
 
-def create_session_class(scenes: list[Scene]) -> StateMachine:
+def build_dynamic_state_machine(
+    scenes: list[Scene],
+) -> tuple[StateMachine, dict[str, TransitionList], dict[str, Callable]]:
     """Create a dynamic StateMachine class from scenes using StateMachineMetaclass."""
 
     states = {scene.name: scene for scene in scenes}
     transitions = {}
+    leaf_actions = {}
     for scene in scenes:
         for action_name, action_info in scene.actions.items():
             target_scene = action_info["transitions_to"]
@@ -20,6 +26,8 @@ def create_session_class(scenes: list[Scene]) -> StateMachine:
                 new_transition = scene.to(target_scene, event=event_name)
                 new_transition.on(action_info["action"])
                 transitions[event_name] = new_transition
+            else:
+                leaf_actions[action_name] = action_info["action"]
 
     SessionSM = StateMachineMetaclass(
         "SessionSM",
@@ -28,7 +36,7 @@ def create_session_class(scenes: list[Scene]) -> StateMachine:
     )
     session_sm: StateMachine = SessionSM()  # type: ignore[no-redef]
 
-    return session_sm
+    return session_sm, transitions, leaf_actions
 
 
 class Session:
@@ -39,7 +47,9 @@ class Session:
         self._scenes_dict = {scene.name: scene for scene in scenes}
 
         # Create dynamic StateMachine class and instantiate it
-        self._sm = create_session_class(scenes)
+        self._sm, self.transitions, self.leaf_actions = build_dynamic_state_machine(
+            scenes
+        )
 
     @property
     def current_scene(self) -> State:
@@ -74,8 +84,28 @@ class Session:
 
     def invoke(self, action_name: str, **kwargs):
         """Invoke an action in the current scene."""
-        action_event = f"event_{action_name}"
-        return self._sm.send(action_event, **kwargs)
+        event_name = f"event_{action_name}"
+        transition = next(
+            (tr for tr_name, tr in self.transitions.items() if tr_name == event_name),
+            None,
+        )
+        if transition:
+            return self._sm.send(event_name, **kwargs)
+
+        leaf_action = next(
+            (
+                action
+                for name, action in self.leaf_actions.items()
+                if name == action_name
+            ),
+            None,
+        )
+        if leaf_action:
+            return leaf_action(**kwargs)
+
+        raise ValueError(
+            f"Action '{action_name}' not found in current scene '{self.current_scene.name}'"
+        )
 
     def __repr__(self):
         current = self.current_scene
