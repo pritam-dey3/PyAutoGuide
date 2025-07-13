@@ -16,15 +16,30 @@ class ReferenceElement(ABC):
 class ReferenceImage(ReferenceElement):
     """Reference element that identifies a scene by an image."""
 
-    def __init__(self, image_path: str):
-        self.image_path = image_path
+    def __init__(
+        self,
+        path: str | list[str],
+        confidence: float = 0.999,
+        region: Box | None = None,
+    ):
+        self.path = path
+        self.confidence = confidence
+        self.region = region
 
     def is_visible(self, region: Box | None = None):
         """Method to detect the presence of the image in the current screen."""
-        try:
-            return gui.locateOnScreen(self.image_path, region=region)
-        except gui.ImageNotFoundException:
-            return None
+        if isinstance(self.path, str):
+            path = [self.path]  # Ensure path is a list for consistency
+        else:
+            path = self.path
+        for image_path in path:
+            try:
+                location = gui.locateOnScreen(
+                    image_path, region=region or self.region, confidence=self.confidence
+                )
+                return location
+            except gui.ImageNotFoundException:
+                continue
 
 
 class ReferenceText(ReferenceElement):
