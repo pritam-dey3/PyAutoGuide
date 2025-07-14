@@ -7,7 +7,8 @@ PyAutoScene is a Python library that provides a declarative approach to GUI auto
 ## 🌟 Features
 
 - **Scene-Based Architecture**: Model your application as a collection of scenes with defined elements and transitions
-- **Visual Element Detection**: Supports both image-based element recognition. (Text recognition support coming soon!)
+- **Visual Element Detection**: Supports both image-based and text-based element recognition
+- **Region Specification**: Flexible region syntax for targeting specific screen areas
 - **Automatic Navigation**: Intelligent pathfinding between scenes using graph algorithms
 - **Action Decorators**: Clean, declarative syntax for defining scene actions and transitions
 
@@ -25,15 +26,15 @@ Here's how to automate a simple login flow:
 
 ```python
 import pyautogui as gui
-from pyautoscene import ReferenceImage, ReferenceText, Scene, Session
+from pyautoscene import ImageElement, TextElement, Scene, Session
 from pyautoscene.utils import locate_and_click
 
 # Define scenes
 login = Scene(
     "Login",
     elements=[
-        ReferenceText("Welcome to Login"),
-        ReferenceImage("references/login_button.png"),
+        TextElement("Welcome to Login"),
+        ImageElement("references/login_button.png"),
     ],
     initial=True,
 )
@@ -41,8 +42,8 @@ login = Scene(
 dashboard = Scene(
     "Dashboard",
     elements=[
-        ReferenceText("Dashboard"),
-        ReferenceImage("references/user_menu.png"),
+        TextElement("Dashboard"),
+        ImageElement("references/user_menu.png"),
     ],
 )
 
@@ -75,8 +76,8 @@ A **Scene** represents a distinct state in your application's UI. Each scene con
 scene = Scene(
     "SceneName",
     elements=[
-        ReferenceImage("path/to/image.png"),
-        ReferenceText("Expected Text"),
+        ImageElement("path/to/image.png"),
+        TextElement("Expected Text"),
     ],
     initial=False  # Set to True for starting scene
 )
@@ -86,20 +87,33 @@ scene = Scene(
 
 PyAutoScene supports two types of reference elements:
 
-#### ReferenceImage
+#### ImageElement
 
 Detects scenes using image matching:
 
 ```python
-ReferenceImage("path/to/reference/image.png")
+ImageElement("path/to/reference/image.png")
 ```
 
-#### ReferenceText
-(Coming soon)
+#### TextElement
+
 Detects scenes using text recognition:
 
 ```python
-ReferenceText("Expected text on screen")
+TextElement("Expected text on screen")
+```
+
+Both elements support region specification for limiting search areas. You can specify regions using a string format like `"x:2/3 y:(1-2)/3"` to easily define screen regions:
+
+```python
+# Search for text in the top-left third of the screen
+TextElement("Login", region="x:1/3 y:1/3")
+
+# Search in a horizontal band across the middle third of the screen
+ImageElement("button.png", region="y:2/3")
+
+# Search in a specific area spanning columns 1-2 out of 3 columns
+TextElement("Welcome", region="x:(1-2)/3 y:1/3")
 ```
 
 ### Actions and Transitions
@@ -180,7 +194,15 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🔮 Roadmap
 
-- [ ] Text recognition implementation
 - [ ] Enhanced image matching algorithms
+- [ ] TemplateScene
+- [ ] Relation between images
 - [ ] Multiple session support
 
+## 🙏 Credits
+
+PyAutoScene builds on the work of several open-source projects:
+
+- [PyAutoGUI](https://github.com/asweigart/pyautogui) by Al Sweigart
+- [python-statemachine](https://github.com/fgmacedo/python-statemachine) by Filipe Macedo
+- [RapidOCR](https://github.com/RapidAI/RapidOCR) by RapidAI contributors

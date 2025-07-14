@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Callable
 
 import networkx as nx
-from pyscreeze import Box
 from statemachine import State, StateMachine
 from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
 from .scene import Scene
+from .screen import Region
 
 
 class SceneRecognitionError(Exception):
@@ -45,7 +45,7 @@ def build_dynamic_state_machine(
     return session_sm, transitions, leaf_actions
 
 
-def get_current_scene(scenes: list[Scene], region: Box | None = None) -> Scene:
+def get_current_scene(scenes: list[Scene], region: Region | None = None) -> Scene:
     """Get the current scene from the list of scenes."""
     current_scenes = [scene for scene in scenes if scene.is_on_screen(region)]
     if len(current_scenes) == 1:

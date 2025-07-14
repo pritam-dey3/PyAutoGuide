@@ -1,13 +1,14 @@
 import pyautogui as gui
 
-from pyautoscene import ReferenceImage, ReferenceText, Scene, Session
+from pyautoscene import ImageElement, Scene, Session, TextElement
 from pyautoscene.utils import locate_and_click
 
 login = Scene(
     "Login",
     elements=[
-        ReferenceText("Welcome to Login"),
-        ReferenceImage("examples/saucedemo/references/login_button.png"),
+        TextElement("Username", region="x-1/3 y-(1-2)/3"),
+        TextElement("Password", region="x-1/3 y-(2-3)/3"),
+        # ReferenceImage("examples/saucedemo/references/login_button.png"),
     ],
     initial=True,
 )
@@ -15,17 +16,16 @@ login = Scene(
 dashboard = Scene(
     "Dashboard",
     elements=[
-        ReferenceText("Swag Labs"),
-        ReferenceText("Products"),
-        ReferenceImage("examples/saucedemo/references/cart_icon.png"),
+        TextElement("Swag Labs", region="x-2/3 y-1/3"),
+        TextElement("Products", region="x-1/3 y-1/3"),
     ],
 )
 
 cart = Scene(
     "Cart",
     elements=[
-        ReferenceText("Your Cart"),
-        ReferenceImage("examples/saucedemo/references/cart_icon.png"),
+        TextElement("Your Cart", region="x-1/3 y-1/3"),
+        ImageElement("examples/saucedemo/references/cart_icon.png"),
     ],
 )
 
