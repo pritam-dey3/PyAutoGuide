@@ -7,12 +7,13 @@ dependencies = [
   "pillow>=11.3.0",
   "pyautogui>=0.9.54",
   "python-statemachine[diagrams]",
+  "opencv-python-headless>=4.12.0.88",
 ]
 description = "Advance GUI automation"
 name = "pyautoscene"
 readme = "README.md"
 requires-python = ">=3.13"
-version = "0.2.0"
+version = "0.2.1"
 
 [project.scripts]
 pyautoscene = "pyautoscene:main"
@@ -29,14 +30,12 @@ dev = [
   "pre-commit>=4.2.0",
   "types-networkx>=3.5.0.20250712",
 ]
+
+[project.optional-dependencies]
 ocr = [
   "rapidocr>=3.2.0",
   "onnxruntime>=1.22.0",
 ]
-opencv = [
-  "opencv-python-headless>=4.12.0.88",
-]
 
 [tool.poe.tasks]
 precmt = "pre-commit run --all-files"
-
