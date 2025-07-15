@@ -398,13 +398,20 @@ sdist = { url = "https://files.pythonhosted.org/packages/65/ff/cdae0a8c2118a0de7
 
 [[package]]
 name = "pyautoscene"
-version = "0.1.0"
+version = "0.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "networkx" },
+    { name = "opencv-python-headless" },
     { name = "pillow" },
     { name = "pyautogui" },
     { name = "python-statemachine", extra = ["diagrams"] },
+]
+
+[package.optional-dependencies]
+ocr = [
+    { name = "onnxruntime" },
+    { name = "rapidocr" },
 ]
 
 [package.dev-dependencies]
@@ -412,32 +419,24 @@ dev = [
     { name = "pre-commit" },
     { name = "types-networkx" },
 ]
-ocr = [
-    { name = "onnxruntime" },
-    { name = "rapidocr" },
-]
-opencv = [
-    { name = "opencv-python-headless" },
-]
 
 [package.metadata]
 requires-dist = [
     { name = "networkx", specifier = ">=3.5" },
+    { name = "onnxruntime", marker = "extra == 'ocr'", specifier = ">=1.22.0" },
+    { name = "opencv-python-headless", specifier = ">=4.12.0.88" },
     { name = "pillow", specifier = ">=11.3.0" },
     { name = "pyautogui", specifier = ">=0.9.54" },
     { name = "python-statemachine", extras = ["diagrams"], git = "https://github.com/fgmacedo/python-statemachine.git?rev=9a089edf61b4afd4abc08968b3cfa508fa332f7c" },
+    { name = "rapidocr", marker = "extra == 'ocr'", specifier = ">=3.2.0" },
 ]
+provides-extras = ["ocr"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "types-networkx", specifier = ">=3.5.0.20250712" },
 ]
-ocr = [
-    { name = "onnxruntime", specifier = ">=1.22.0" },
-    { name = "rapidocr", specifier = ">=3.2.0" },
-]
-opencv = [{ name = "opencv-python-headless", specifier = ">=4.12.0.88" }]
 
 [[package]]
 name = "pyclipper"

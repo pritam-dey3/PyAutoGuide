@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: git fetch origin develop
+      - run: git fetch origin main
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -25,10 +25,6 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
-      - name: Test
-        run: |
-          uv run pytest
-
       - name: Build
         run: |
           uv build
@@ -40,14 +36,14 @@ jobs:
           path: dist/
 
   publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    name: Publish Python 🐍 distribution 📦 to PyPI
     needs:
       - release-build
     runs-on: ubuntu-latest
 
     environment:
       name: pypi
-      url: https://test.pypi.org/p/pyautoscene
+      url: https://pypi.org/p/pyautoscene
 
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing
@@ -58,7 +54,5 @@ jobs:
         with:
           name: release-dists
           path: dist/
-      - name: Publish distribution 📦 to TestPyPI
+      - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
