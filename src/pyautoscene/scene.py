@@ -7,7 +7,7 @@ from statemachine import State
 from pyautoscene.utils import is_valid_variable_name
 
 from .references import ReferenceElement
-from .screen import Region
+from .region import Region
 
 
 class ActionInfo(TypedDict):
@@ -55,7 +55,7 @@ class Scene(State):
         """Check if any reference element is currently on screen."""
         # TODO: Refactor after text recognition is implemented
         # elements = (elem for elem in self.elements if isinstance(elem, ReferenceImage))
-        return all(elem.is_visible(region) for elem in self.elements)
+        return all(elem.locate(region) for elem in self.elements)
 
     def __repr__(self):
         return f"Scene({self.name!r}, elements={len(self.elements)})"

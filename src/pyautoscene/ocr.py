@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from .screen import Region
+from .region import Region
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -8,8 +8,8 @@ from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
+from .region import Region
 from .scene import Scene
-from .screen import Region
 
 
 class SceneRecognitionError(Exception):
