@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Callable
 
 import networkx as nx
@@ -9,7 +10,7 @@ from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
-from .references import ImageElement
+from .references import ImageElement, ReferenceElement
 from .region import Region
 from .scene import Scene
 
@@ -140,6 +141,19 @@ class Session:
         raise ValueError(
             f"Action '{action_name}' not found in current scene '{self.current_scene.name}'"
         )
+
+    def wait_until(self, target: Scene | ReferenceElement, interval: float = 1):
+        """Wait until the target scene or reference element is on screen."""
+        found = False
+        while not found:
+            if isinstance(target, Scene):
+                found = target.is_on_screen()
+            elif isinstance(target, ReferenceElement):
+                found = target.locate() is not None
+            else:
+                raise TypeError("Target must be a Scene or ReferenceElement.")
+            if not found:
+                time.sleep(interval)
 
     def __repr__(self):
         current = self.current_scene

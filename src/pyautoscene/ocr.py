@@ -1,4 +1,5 @@
 import logging
+import os
 from hashlib import sha256
 from pathlib import Path
 
@@ -18,7 +19,9 @@ except ImportError:
         "RapidOCR is not installed. Please install it using 'pip install pyautoscene[ocr]'."
     )
 
-ocr_config_path = Path(__file__).parent / "ocr_config.yaml"
+default_ocr_config_path = Path(__file__).parent / "ocr_config.yaml"
+ocr_config_path = Path(os.getenv("PYAUTOSCENE_OCR_CONFIG", default_ocr_config_path))
+logger.info(f"OCR config path: {ocr_config_path}")
 
 
 def hash_image(img: Image.Image) -> str:
