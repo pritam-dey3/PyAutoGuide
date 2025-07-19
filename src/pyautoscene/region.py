@@ -7,6 +7,8 @@ import numpy as np
 import pyautogui as gui
 from pyscreeze import Box
 
+type RegionSpec = Region | str
+
 axis_pattern = re.compile(r"(?P<d>[xy]):\(?(?P<i>\d+)(?:-(?P<j>\d+))?\)?/(?P<n>\d+)")
 
 
@@ -55,5 +57,14 @@ class Region:
 
         return cls(**default_region)
 
-
-RegionSpec = Region | str
+    def resolve(self, base: RegionSpec | None) -> Region:
+        if base is None:
+            return self
+        if isinstance(base, str):
+            base = Region.from_spec(base)
+        return Region(
+            left=self.left + base.left,
+            top=self.top + base.top,
+            width=self.width,
+            height=self.height,
+        )

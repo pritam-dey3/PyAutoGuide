@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import override
+from typing import Callable, override
 
 import pyautogui as gui
+from PIL import Image
 
+from ._types import MouseButton, TowardsDirection
 from .region import Region, RegionSpec
-from .utils import locate_on_screen
+from .utils import locate_on_screen, move_and_click
 
 
 class ReferenceElement(ABC):
@@ -16,20 +18,23 @@ class ReferenceElement(ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     def locate_and_click(
-        self, offset: tuple[int, int] = (0, 0), clicks: int = 1, button: str = "left"
+        self,
+        offset: tuple[int, int] = (0, 0),
+        region: RegionSpec | None = None,
+        clicks: int = 1,
+        button: MouseButton = "left",
+        towards: TowardsDirection = None,
     ):
         """Locate the reference element and click on it."""
-        region = self.locate()
+        region = self.locate(region=region)
         assert region is not None, f"Element {self} not found on screen"
-        # TODO: unify moving logic with utils
-        gui.moveTo(
-            region.center[0] + offset[0],
-            region.center[1] + offset[1],
-            0.6,
-            gui.easeInOutQuad,  # type: ignore
+        move_and_click(
+            target_region=region,
+            clicks=clicks,
+            button=button,
+            offset=offset,
+            towards=towards,
         )
-        gui.click(clicks=clicks, button=button)
-        return True
 
 
 class ImageElement(ReferenceElement):
@@ -40,13 +45,15 @@ class ImageElement(ReferenceElement):
         path: str | list[str],
         confidence: float = 0.999,
         region: RegionSpec | None = None,
+        locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
     ):
         self.path = path
         self.confidence = confidence
         self.region = region
+        self.locator = locator
 
     @override
-    def locate(self, region: RegionSpec | None = None):
+    def locate(self, region: RegionSpec | None = None) -> Region | None:
         """Method to detect the presence of the image in the current screen."""
         if isinstance(self.path, str):
             path = [self.path]  # Ensure path is a list for consistency
@@ -55,7 +62,10 @@ class ImageElement(ReferenceElement):
         for image_path in path:
             try:
                 location = locate_on_screen(
-                    image_path, region=region or self.region, confidence=self.confidence
+                    image_path,
+                    region=region if region else self.region,
+                    confidence=self.confidence,
+                    locator=self.locator,
                 )
                 return location
             except gui.ImageNotFoundException:
@@ -66,10 +76,7 @@ class TextElement(ReferenceElement):
     """Reference element that identifies a scene by text."""
 
     def __init__(
-        self,
-        text: str,
-        region: RegionSpec | None = None,
-        case_sensitive: bool = False,
+        self, text: str, region: RegionSpec | None = None, case_sensitive: bool = False
     ):
         self.text = text
         self.region = region
@@ -89,5 +96,5 @@ class TextElement(ReferenceElement):
             if not self.case_sensitive:
                 text = text.lower()
             if text.strip() == self.text.strip():
-                return detected_region
+                return detected_region.resolve(base=region)
         return None

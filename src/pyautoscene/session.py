@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Callable
 
 import networkx as nx
+from PIL import Image
 from statemachine import State, StateMachine
 from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
+from .references import ImageElement
 from .region import Region
 from .scene import Scene
 
@@ -61,9 +63,18 @@ def get_current_scene(scenes: list[Scene], region: Region | None = None) -> Scen
 class Session:
     """A session manages the state machine for GUI automation scenes."""
 
-    def __init__(self, scenes: list[Scene]):
+    def __init__(
+        self,
+        scenes: list[Scene],
+        image_locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+    ):
         self._scenes_list = scenes
         self._scenes_dict = {scene.name: scene for scene in scenes}
+        self.image_locator = image_locator
+        for scene in self._scenes_list:
+            for elem in scene.elements:
+                if isinstance(elem, ImageElement):
+                    elem.locator = image_locator
 
         # Create dynamic StateMachine class and instantiate it
         self._sm, self.transitions, self.leaf_actions = build_dynamic_state_machine(
@@ -84,9 +95,7 @@ class Session:
         present_scene = get_current_scene(self._scenes_list)
         all_paths = list(
             nx.all_simple_paths(
-                self.graph,
-                source=present_scene.name,
-                target=target_scene.name,
+                self.graph, source=present_scene.name, target=target_scene.name
             )
         )
         if len(all_paths) == 0:

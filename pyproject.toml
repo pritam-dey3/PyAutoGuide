@@ -39,3 +39,10 @@ ocr = [
 
 [tool.poe.tasks]
 precmt = "pre-commit run --all-files"
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff]
+ignore = ["E731"]
+line-length = 88
