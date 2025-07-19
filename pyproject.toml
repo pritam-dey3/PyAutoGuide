@@ -13,7 +13,7 @@ description = "Advance GUI automation"
 name = "pyautoscene"
 readme = "README.md"
 requires-python = ">=3.13"
-version = "0.2.2"
+version = "0.2.3"
 
 [project.scripts]
 pyautoscene = "pyautoscene:main"

@@ -143,6 +143,6 @@ def locate_on_screen(
         if len(detections) == 0:
             return None
         elif limit > 1:
-            return detections[:limit]
+            return [det.resolve(region) for det in detections[:limit]]
         else:
-            return detections[0]
+            return detections[0].resolve(region)
