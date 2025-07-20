@@ -55,7 +55,7 @@ class Scene(State):
         """Check if any reference element is currently on screen."""
         # TODO: Refactor after text recognition is implemented
         # elements = (elem for elem in self.elements if isinstance(elem, ReferenceImage))
-        return all(elem.locate(region) for elem in self.elements)
+        return all(elem.locate(region, n=1) for elem in self.elements)
 
     def __repr__(self):
         return f"Scene({self.name!r}, elements={len(self.elements)})"

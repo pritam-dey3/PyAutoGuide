@@ -4,7 +4,7 @@ import logging
 import os
 import time
 from keyword import iskeyword
-from typing import Callable, overload
+from typing import Callable
 
 import numpy as np
 import pyautogui as gui
@@ -25,9 +25,9 @@ def locate_and_click(
     region: RegionSpec | None = None,
     confidence: float = 0.999,
     grayscale: bool = True,
-    limit: int = 1,
     offset: tuple[int, int] = (0, 0),
     towards: TowardsDirection | None = None,
+    index: int = 0,
 ):
     time.sleep(LOCATE_AND_CLICK_DELAY)
     found_region = locate_on_screen(
@@ -35,11 +35,18 @@ def locate_and_click(
         region=region,
         confidence=confidence,
         grayscale=grayscale,
-        limit=limit,
+        limit=index + 1,
     )
     assert found_region is not None, f"Could not locate {reference} on screen."
+    assert len(found_region) > index, (
+        f"Not enough detections for {reference}: {len(found_region)}"
+    )
     move_and_click(
-        found_region, clicks=clicks, button=button, offset=offset, towards=towards
+        found_region[index],
+        clicks=clicks,
+        button=button,
+        offset=offset,
+        towards=towards,
     )
     time.sleep(LOCATE_AND_CLICK_DELAY)
 
@@ -85,7 +92,6 @@ def is_valid_variable_name(name):
     return name.isidentifier() and not iskeyword(name)
 
 
-@overload
 def locate_on_screen(
     reference: Image.Image | str,
     region: RegionSpec | None = None,
@@ -93,24 +99,7 @@ def locate_on_screen(
     grayscale: bool = True,
     limit: int = 1,
     locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
-) -> Region | None: ...
-@overload
-def locate_on_screen(
-    reference: Image.Image | str,
-    region: RegionSpec | None = None,
-    confidence: float = 0.999,
-    grayscale: bool = True,
-    limit: int = 1,
-    locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
-) -> list[Region] | None: ...
-def locate_on_screen(
-    reference: Image.Image | str,
-    region: RegionSpec | None = None,
-    confidence: float = 0.999,
-    grayscale: bool = True,
-    limit: int = 1,
-    locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
-):
+) -> list[Region] | None:
     """Locate a region on the screen."""
     if isinstance(reference, str):
         if not os.path.exists(reference):
@@ -118,15 +107,15 @@ def locate_on_screen(
         reference = Image.open(reference)
     if locator is None:
         try:
-            location = gui.locateOnScreen(
-                reference,
-                region=Region.from_spec(region).to_box() if region else None,
-                grayscale=grayscale,
-                confidence=confidence,
-                limit=limit,
+            locations = list(
+                gui.locateAllOnScreen(
+                    reference,
+                    region=Region.from_spec(region).to_box() if region else None,
+                    grayscale=grayscale,
+                    confidence=confidence,
+                )
             )
-            if location:
-                return Region.from_box(location)
+            return [Region.from_box(loc) for loc in locations[:limit]]
         except gui.ImageNotFoundException:
             return None
         except FileNotFoundError:
@@ -142,7 +131,5 @@ def locate_on_screen(
         logger.info("total detections: %d", len(detections))
         if len(detections) == 0:
             return None
-        elif limit > 1:
-            return [det.resolve(region) for det in detections[:limit]]
         else:
-            return detections[0].resolve(region)
+            return [det.resolve(region) for det in detections[:limit]]

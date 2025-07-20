@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import time
+from random import random
 from typing import Callable
 
 import networkx as nx
+import pyautogui as gui
 from PIL import Image
 from statemachine import State, StateMachine
 from statemachine.factory import StateMachineMetaclass
@@ -114,8 +116,14 @@ class Session:
             for i in range(len(path) - 1)
         ]
 
-        for event in events:
-            self._sm.send(event, **kwargs)
+        old_state = self._sm.current_state
+        try:
+            self._sm.current_state = present_scene
+            for event in events:
+                self._sm.send(event, **kwargs)
+        except Exception as e:
+            self._sm.current_state = old_state
+            raise e
 
     def invoke(self, action_name: str, **kwargs):
         """Invoke an action in the current scene."""
@@ -142,17 +150,30 @@ class Session:
             f"Action '{action_name}' not found in current scene '{self.current_scene.name}'"
         )
 
-    def wait_until(self, target: Scene | ReferenceElement, interval: float = 1):
+    def wait_until(
+        self,
+        target: Scene | ReferenceElement,
+        interval: float = 1,
+        keep_busy: bool = True,
+    ):
         """Wait until the target scene or reference element is on screen."""
         found = False
         while not found:
             if isinstance(target, Scene):
                 found = target.is_on_screen()
             elif isinstance(target, ReferenceElement):
-                found = target.locate() is not None
+                found = target.locate(n=1) is not None
             else:
                 raise TypeError("Target must be a Scene or ReferenceElement.")
             if not found:
+                w, h = gui.size()
+                if keep_busy:
+                    gui.moveTo(
+                        w * random(),
+                        h * random(),
+                        duration=2 * interval * random(),
+                        tween=gui.easeInOutQuad,  # type: ignore
+                    )
                 time.sleep(interval)
 
     def __repr__(self):

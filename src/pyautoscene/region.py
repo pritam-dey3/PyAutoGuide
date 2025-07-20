@@ -7,6 +7,9 @@ import numpy as np
 import pyautogui as gui
 from pyscreeze import Box
 
+from ._types import MouseButton, TowardsDirection
+from .utils import move_and_click
+
 type RegionSpec = Region | str
 
 axis_pattern = re.compile(r"(?P<d>[xy]):\(?(?P<i>\d+)(?:-(?P<j>\d+))?\)?/(?P<n>\d+)")
@@ -67,4 +70,22 @@ class Region:
             top=self.top + base.top,
             width=self.width,
             height=self.height,
+        )
+
+    def click(
+        self,
+        clicks: int = 1,
+        button: MouseButton = "left",
+        offset: tuple[int, int] = (0, 0),
+        towards: TowardsDirection | None = None,
+        base: RegionSpec | None = None,
+    ):
+        """Click at the center of the region with optional offset."""
+        target_region = self.resolve(base)
+        move_and_click(
+            target_region=target_region,
+            clicks=clicks,
+            button=button,
+            offset=offset,
+            towards=towards,
         )
