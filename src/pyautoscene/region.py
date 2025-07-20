@@ -8,7 +8,7 @@ import pyautogui as gui
 from pyscreeze import Box
 
 from ._types import MouseButton, TowardsDirection
-from .utils import move_and_click
+from .actions import move_and_click
 
 type RegionSpec = Region | str
 

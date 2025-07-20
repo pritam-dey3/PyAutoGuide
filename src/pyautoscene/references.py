@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Callable, override
 
 import pyautogui as gui
 from PIL import Image
 
 from ._types import MouseButton, TowardsDirection
+from .actions import locate_on_screen, move_and_click
 from .region import Region, RegionSpec
-from .utils import locate_on_screen, move_and_click
+from .utils import get_file
 
 
 class ReferenceElement(ABC):
@@ -89,6 +91,38 @@ class ImageElement(ReferenceElement):
         return all_locations if all_locations else None
 
 
+class ReferenceImageDir:
+    def __init__(self, dir_path: Path) -> None:
+        assert dir_path.is_dir(), f"{dir_path} is not a valid directory."
+        self.dir_path = dir_path
+        self.images: dict[str, ImageElement] = {}
+
+    def __call__(
+        self,
+        image_name: str,
+        region: RegionSpec | None = None,
+        confidence: float = 0.999,
+        locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+    ) -> ImageElement:
+        """Get an ImageElement from the reference directory."""
+        if image_name not in self.images:
+            image_path = get_file(self.dir_path, name=image_name)
+            self.images[image_name] = ImageElement(
+                str(image_path), region=region, confidence=confidence, locator=locator
+            )
+        return self.images[image_name]
+
+
+def image(
+    path: str,
+    region: RegionSpec | None = None,
+    confidence: float = 0.999,
+    locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+) -> ImageElement:
+    """Create an image reference element."""
+    return ImageElement(path, confidence=confidence, region=region, locator=locator)
+
+
 class TextElement(ReferenceElement):
     """Reference element that identifies a scene by text."""
 
@@ -130,3 +164,15 @@ class TextElement(ReferenceElement):
                 return found_regions[:n]
 
         return found_regions if found_regions else None
+
+
+def text(
+    text: str,
+    region: RegionSpec | None = None,
+    case_sensitive: bool = False,
+    full_text: bool = False,
+) -> TextElement:
+    """Create a text reference element."""
+    return TextElement(
+        text=text, region=region, case_sensitive=case_sensitive, full_text=full_text
+    )
