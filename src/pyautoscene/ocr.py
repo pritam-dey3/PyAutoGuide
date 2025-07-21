@@ -8,7 +8,6 @@ from PIL import Image
 
 from .region import Region
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:

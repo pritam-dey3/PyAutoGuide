@@ -5,6 +5,10 @@ from keyword import iskeyword
 from pathlib import Path
 from typing import Literal
 
+import networkx as nx
+import pydot
+from transitions.extensions import GraphMachine
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +30,13 @@ def get_file(
     else:
         raise ValueError(f"Unknown file type: {file_type}")
 
-    for path in dir.glob(name):
+    for path in dir.glob(f"{name}.*"):
         if path.suffix in valid_extensions:
             return path
     raise FileNotFoundError(f"File {name} not found in directory {dir}")
+
+
+def get_nx_graph(machine: GraphMachine) -> nx.MultiDiGraph:
+    pydot_graph = pydot.graph_from_dot_data(machine.get_graph().source)[0]  # type: ignore
+    nx_graph = nx.nx_pydot.from_pydot(pydot_graph)
+    return nx_graph

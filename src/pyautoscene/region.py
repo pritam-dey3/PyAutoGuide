@@ -8,7 +8,6 @@ import pyautogui as gui
 from pyscreeze import Box
 
 from ._types import MouseButton, TowardsDirection
-from .actions import move_and_click
 
 type RegionSpec = Region | str
 
@@ -81,6 +80,8 @@ class Region:
         base: RegionSpec | None = None,
     ):
         """Click at the center of the region with optional offset."""
+        from .actions import move_and_click
+
         target_region = self.resolve(base)
         move_and_click(
             target_region=target_region,

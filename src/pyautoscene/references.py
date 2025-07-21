@@ -14,6 +14,8 @@ from .utils import get_file
 class ReferenceElement(ABC):
     """Base class for reference elements used to identify scenes."""
 
+    name: str
+
     @abstractmethod
     def locate(
         self, region: RegionSpec | None = None, n: int = 1
@@ -58,6 +60,7 @@ class ImageElement(ReferenceElement):
         self.confidence = confidence
         self.region = region
         self.locator = locator
+        self.name = Path(path).stem if isinstance(path, str) else Path(path[0]).stem
 
     @override
     def locate(
@@ -89,6 +92,9 @@ class ImageElement(ReferenceElement):
                 continue
 
         return all_locations if all_locations else None
+
+    def __repr__(self) -> str:
+        return f"ImageElement: {self.path}"
 
 
 class ReferenceImageDir:
@@ -139,6 +145,7 @@ class TextElement(ReferenceElement):
         self.full_text = full_text
         if not case_sensitive:
             self.text = self.text.lower()
+        self.name = text
 
     def locate(
         self, region: RegionSpec | None = None, n: int = 1
@@ -164,6 +171,9 @@ class TextElement(ReferenceElement):
                 return found_regions[:n]
 
         return found_regions if found_regions else None
+
+    def __repr__(self) -> str:
+        return f"{{TextElement: {self.text}}}"
 
 
 def text(
