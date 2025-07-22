@@ -53,17 +53,17 @@ class WorkFlow:
 
         def decorator[T: Callable](func: T) -> T:
             action_name = name or func.__name__
-            self.actions[action_name] = func
+            self.actions[f"action_{action_name}"] = func
             return func
 
         return decorator
 
     def invoke(self, name: str, **kwargs):
         """Execute an action or transition."""
-        if name in self.actions:
-            return self.actions[name](**kwargs)
-        elif name in self.navigations:
-            return self.navigations[name](**kwargs)
+        if (aname := f"action_{name}") in self.actions:
+            return self.actions[aname](**kwargs)
+        elif (nname := f"event_{name}") in self.navigations:
+            return self.navigations[nname](**kwargs)
         raise ValueError(f"Action or navigation '{name}' not found.")
 
     def get_visible_elements(self) -> list[ReferenceElement]:
