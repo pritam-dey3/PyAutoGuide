@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, override
 
 import pyautogui as gui
+import pyscreeze
 from PIL import Image
 
 from ._types import MouseButton, TowardsDirection
@@ -88,7 +89,7 @@ class ImageElement(ReferenceElement):
                 # If we have enough detections, return them
                 if len(all_locations) >= n:
                     return all_locations[:n]
-            except gui.ImageNotFoundException:
+            except (gui.ImageNotFoundException, pyscreeze.ImageNotFoundException):
                 continue
 
         return all_locations if all_locations else None
