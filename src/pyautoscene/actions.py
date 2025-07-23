@@ -102,22 +102,22 @@ def locate_on_screen(
             locations = list(
                 gui.locateAllOnScreen(
                     reference,
-                    region=Region.from_spec(region).to_box() if region else None,
+                    region=Region.from_spec(region).to_tuple() if region else None,
                     grayscale=grayscale,
                     confidence=confidence,
                 )
             )
-            return [Region.from_box(loc) for loc in locations[:limit]]
+            return [Region.from_tuple(loc) for loc in locations[:limit]]
         except gui.ImageNotFoundException:
             return None
         except FileNotFoundError:
             return None
     else:
         screenshot = gui.screenshot(
-            region=Region.from_spec(region).to_box() if region else None
+            region=Region.from_spec(region).to_tuple() if region else None
         )
         logger.info(
-            f"Searching in region: {Region.from_spec(region).to_box() if region else None}.\nGiven region: {region}"
+            f"Searching in region: {Region.from_spec(region).to_tuple() if region else None}.\nGiven region: {region}"
         )
         detections = locator(reference, screenshot)
         logger.info("total detections: %d", len(detections))

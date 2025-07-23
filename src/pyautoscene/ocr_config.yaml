@@ -98,9 +98,9 @@ Cls:
 
 Rec:
     engine_type: "onnxruntime"
-    lang_type: "en"
+    lang_type: "ch"
     model_type: "mobile"
-    ocr_version: "PP-OCRv4"
+    ocr_version: "PP-OCRv5"
 
     task_type: "rec"
 

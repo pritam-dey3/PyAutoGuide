@@ -159,7 +159,9 @@ class TextElement(ReferenceElement):
         found_regions = []
 
         for text, detected_region in ocr.recognize_text(
-            gui.screenshot(region=Region.from_spec(region).to_box() if region else None)
+            gui.screenshot(
+                region=Region.from_spec(region).to_tuple() if region else None
+            )
         ):
             if not self.case_sensitive:
                 text = text.lower()

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pyautogui as gui
-from pyscreeze import Box
+from pyscreeze import Box as BoxTuple
 
 from ._types import MouseButton, TowardsDirection
 
@@ -21,12 +21,12 @@ class Region:
     width: int
     height: int
 
-    def to_box(self) -> Box:
+    def to_tuple(self) -> BoxTuple:
         """Convert to a pyscreeze Box."""
-        return Box(self.left, self.top, self.width, self.height)
+        return BoxTuple(self.left, self.top, self.width, self.height)
 
     @classmethod
-    def from_box(cls, box: Box) -> Region:
+    def from_tuple(cls, box: BoxTuple) -> Region:
         """Create a Region from a pyscreeze Box."""
         return cls(left=box.left, top=box.top, width=box.width, height=box.height)
 
