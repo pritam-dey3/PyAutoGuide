@@ -6,8 +6,11 @@ from pathlib import Path
 from typing import Literal
 
 import networkx as nx
+import numpy as np
 import pydot
 from transitions.extensions import GraphMachine
+
+from ._types import Direction
 
 logger = logging.getLogger(__name__)
 
@@ -40,3 +43,10 @@ def get_nx_graph(machine: GraphMachine) -> nx.MultiDiGraph:
     pydot_graph = pydot.graph_from_dot_data(machine.get_graph().source)[0]  # type: ignore
     nx_graph = nx.nx_pydot.from_pydot(pydot_graph)
     return nx_graph
+
+
+def direction_to_vector(direction: Direction) -> np.ndarray:
+    mapping = {"right": 0, "top": 90, "left": 180, "bottom": 270}
+    deg = mapping[direction] if isinstance(direction, str) else direction
+    rad = np.deg2rad(deg)
+    return np.array([np.cos(rad), -np.sin(rad)])

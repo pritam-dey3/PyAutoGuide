@@ -7,7 +7,7 @@ import numpy as np
 import pyautogui as gui
 from pyscreeze import Box as BoxTuple
 
-from ._types import MouseButton, TowardsDirection
+from ._types import Direction, MouseButton
 
 type RegionSpec = Region | str
 
@@ -75,8 +75,8 @@ class Region:
         self,
         clicks: int = 1,
         button: MouseButton = "left",
-        offset: tuple[int, int] = (0, 0),
-        towards: TowardsDirection | None = None,
+        offset: int = 0,
+        towards: Direction | None = None,
         base: RegionSpec | None = None,
     ):
         """Click at the center of the region with optional offset."""

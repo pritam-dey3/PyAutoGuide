@@ -21,7 +21,7 @@ def perform_login(username: str, password: str):
     gui.write(username, interval=0.1)
     gui.press("tab")
     gui.write(password, interval=0.1)
-    gui.press("enter")
+    text("Swag Labs").locate_and_click(index=1, offset=400, towards="bottom")
 
 
 @wf.action()

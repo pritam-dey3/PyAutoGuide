@@ -7,9 +7,10 @@ import numpy as np
 import pyautogui as gui
 from PIL import Image
 
-from ._types import MouseButton, TowardsDirection
+from ._types import Direction, MouseButton
 from .constants import LOCATE_AND_CLICK_DELAY, POINTER_SPEED
 from .region import Region, RegionSpec
+from .utils import direction_to_vector
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ def locate_and_click(
     region: RegionSpec | None = None,
     confidence: float = 0.999,
     grayscale: bool = True,
-    offset: tuple[int, int] = (0, 0),
-    towards: TowardsDirection | None = None,
+    offset: int = 0,
+    towards: Direction | None = None,
     index: int = 0,
 ):
     time.sleep(LOCATE_AND_CLICK_DELAY)
@@ -51,32 +52,16 @@ def move_and_click(
     target_region: RegionSpec,
     clicks: int = 1,
     button: MouseButton = "left",
-    offset: tuple[int, int] = (0, 0),
-    towards: TowardsDirection | None = None,
+    offset: int = 0,
+    towards: Direction | None = None,
 ):
     """Move to the center or edge of the region and click.
 
     The offset is always added to the calculated target point.
     For example, for 'bottom', offset=(0, 5) means 5 pixels below the bottom edge.
     """
-    _target_region = Region.from_spec(target_region)
-    base_points = {
-        "top": (_target_region.center[0], _target_region.top),
-        "left": (_target_region.left, _target_region.center[1]),
-        "bottom": (
-            _target_region.center[0],
-            _target_region.top + _target_region.height - 1,
-        ),
-        "right": (
-            _target_region.left + _target_region.width - 1,
-            _target_region.center[1],
-        ),
-        None: _target_region.center,
-    }
-    if towards not in base_points:
-        raise ValueError(f"Invalid direction: {towards}")
-    base = base_points[towards]
-    target = (base[0] + offset[0], base[1] + offset[1])
+    direction = direction_to_vector(towards) if towards else np.array([0, 0])
+    target = np.array(target_region.center) + offset * direction
 
     current = gui.position()
     duration = np.linalg.norm(np.array(target) - np.array(current)) / POINTER_SPEED

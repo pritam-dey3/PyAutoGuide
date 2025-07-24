@@ -6,7 +6,7 @@ import pyautogui as gui
 import pyscreeze
 from PIL import Image
 
-from ._types import MouseButton, TowardsDirection
+from ._types import Direction, MouseButton
 from .actions import locate_on_screen, move_and_click
 from .region import Region, RegionSpec
 from .utils import get_file
@@ -26,11 +26,11 @@ class ReferenceElement(ABC):
 
     def locate_and_click(
         self,
-        offset: tuple[int, int] = (0, 0),
+        offset: int = 0,
         region: RegionSpec | None = None,
         clicks: int = 1,
         button: MouseButton = "left",
-        towards: TowardsDirection = None,
+        towards: Direction | None = None,
         index: int = 0,
     ):
         """Locate the reference element and click on it."""
@@ -99,7 +99,9 @@ class ImageElement(ReferenceElement):
 
 
 class ReferenceImageDir:
-    def __init__(self, dir_path: Path) -> None:
+    def __init__(self, dir_path: Path | str) -> None:
+        if isinstance(dir_path, str):
+            dir_path = Path(dir_path)
         assert dir_path.is_dir(), f"{dir_path} is not a valid directory."
         self.dir_path = dir_path
         self.images: dict[str, ImageElement] = {}
