@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from pyautoscene.region import Region
+from pyautoscene.shapes import Box
 
 type OpenCvTransformKernel = Literal["CROSS", "RECT", "ELLIPSE"]
 type OpenCvTransformMorphology = Literal[
@@ -82,7 +82,6 @@ def ilish(
     matches = np.unravel_index(match_indices, result.shape)
 
     match_regions = [
-        Region(x, y, needle.width, needle.height)
-        for x, y in zip(matches[1], matches[0])
+        Box(x, y, needle.width, needle.height) for x, y in zip(matches[1], matches[0])
     ]
     return (match_regions, result, needle_t, haystack_t)

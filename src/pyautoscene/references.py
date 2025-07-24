@@ -8,7 +8,7 @@ from PIL import Image
 
 from ._types import Direction, MouseButton
 from .actions import locate_on_screen, move_and_click
-from .region import Region, RegionSpec
+from .shapes import Box, BoxSpec
 from .utils import get_file
 
 
@@ -18,16 +18,14 @@ class ReferenceElement(ABC):
     name: str
 
     @abstractmethod
-    def locate(
-        self, region: RegionSpec | None = None, n: int = 1
-    ) -> list[Region] | None:
+    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
         """Detect the presence of the reference element."""
         raise NotImplementedError("Subclasses must implement this method")
 
     def locate_and_click(
         self,
         offset: int = 0,
-        region: RegionSpec | None = None,
+        region: BoxSpec | None = None,
         clicks: int = 1,
         button: MouseButton = "left",
         towards: Direction | None = None,
@@ -39,7 +37,7 @@ class ReferenceElement(ABC):
             f"Element {self} not found on screen or insufficient detections {len(regions) if regions else 0} < {index + 1}."
         )
         move_and_click(
-            target_region=regions[index],
+            target_box=regions[index],
             clicks=clicks,
             button=button,
             offset=offset,
@@ -54,8 +52,8 @@ class ImageElement(ReferenceElement):
         self,
         path: str | list[str],
         confidence: float = 0.999,
-        region: RegionSpec | None = None,
-        locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+        region: BoxSpec | None = None,
+        locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
     ):
         self.path = path
         self.confidence = confidence
@@ -64,16 +62,14 @@ class ImageElement(ReferenceElement):
         self.name = Path(path).stem if isinstance(path, str) else Path(path[0]).stem
 
     @override
-    def locate(
-        self, region: RegionSpec | None = None, n: int = 1
-    ) -> list[Region] | None:
+    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
         """Method to detect the presence of the image in the current screen."""
         if isinstance(self.path, str):
             path = [self.path]  # Ensure path is a list for consistency
         else:
             path = self.path
 
-        all_locations: list[Region] = []
+        all_locations: list[Box] = []
         for image_path in path:
             try:
                 locations = locate_on_screen(
@@ -109,9 +105,9 @@ class ReferenceImageDir:
     def __call__(
         self,
         image_name: str,
-        region: RegionSpec | None = None,
+        region: BoxSpec | None = None,
         confidence: float = 0.999,
-        locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+        locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
     ) -> ImageElement:
         """Get an ImageElement from the reference directory."""
         if image_name not in self.images:
@@ -124,9 +120,9 @@ class ReferenceImageDir:
 
 def image(
     path: str,
-    region: RegionSpec | None = None,
+    region: BoxSpec | None = None,
     confidence: float = 0.999,
-    locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+    locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
 ) -> ImageElement:
     """Create an image reference element."""
     return ImageElement(path, confidence=confidence, region=region, locator=locator)
@@ -138,7 +134,7 @@ class TextElement(ReferenceElement):
     def __init__(
         self,
         text: str,
-        region: RegionSpec | None = None,
+        region: BoxSpec | None = None,
         case_sensitive: bool = False,
         full_text: bool = False,
     ):
@@ -150,9 +146,7 @@ class TextElement(ReferenceElement):
             self.text = self.text.lower()
         self.name = text
 
-    def locate(
-        self, region: RegionSpec | None = None, n: int = 1
-    ) -> list[Region] | None:
+    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
         """Method to detect the presence of the text in the current screen."""
         from .ocr import OCR
 
@@ -161,9 +155,7 @@ class TextElement(ReferenceElement):
         found_regions = []
 
         for text, detected_region in ocr.recognize_text(
-            gui.screenshot(
-                region=Region.from_spec(region).to_tuple() if region else None
-            )
+            gui.screenshot(region=Box.from_spec(region).to_tuple() if region else None)
         ):
             if not self.case_sensitive:
                 text = text.lower()
@@ -183,7 +175,7 @@ class TextElement(ReferenceElement):
 
 def text(
     text: str,
-    region: RegionSpec | None = None,
+    region: BoxSpec | None = None,
     case_sensitive: bool = False,
     full_text: bool = False,
 ) -> TextElement:

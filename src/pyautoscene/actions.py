@@ -9,7 +9,7 @@ from PIL import Image
 
 from ._types import Direction, MouseButton
 from .constants import LOCATE_AND_CLICK_DELAY, POINTER_SPEED
-from .region import Region, RegionSpec
+from .shapes import Box, BoxSpec
 from .utils import direction_to_vector
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def locate_and_click(
     reference: Image.Image | str,
     clicks: int = 1,
     button: MouseButton = "left",
-    region: RegionSpec | None = None,
+    region: BoxSpec | None = None,
     confidence: float = 0.999,
     grayscale: bool = True,
     offset: int = 0,
@@ -49,7 +49,7 @@ def locate_and_click(
 
 
 def move_and_click(
-    target_region: RegionSpec,
+    target_box: BoxSpec,
     clicks: int = 1,
     button: MouseButton = "left",
     offset: int = 0,
@@ -61,7 +61,7 @@ def move_and_click(
     For example, for 'bottom', offset=(0, 5) means 5 pixels below the bottom edge.
     """
     direction = direction_to_vector(towards) if towards else np.array([0, 0])
-    target = np.array(target_region.center) + offset * direction
+    target = np.array(target_box.center) + offset * direction
 
     current = gui.position()
     duration = np.linalg.norm(np.array(target) - np.array(current)) / POINTER_SPEED
@@ -71,12 +71,12 @@ def move_and_click(
 
 def locate_on_screen(
     reference: Image.Image | str,
-    region: RegionSpec | None = None,
+    region: BoxSpec | None = None,
     confidence: float = 0.999,
     grayscale: bool = True,
     limit: int = 1,
-    locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
-) -> list[Region] | None:
+    locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
+) -> list[Box] | None:
     """Locate a region on the screen."""
     if isinstance(reference, str):
         if not os.path.exists(reference):
@@ -87,22 +87,22 @@ def locate_on_screen(
             locations = list(
                 gui.locateAllOnScreen(
                     reference,
-                    region=Region.from_spec(region).to_tuple() if region else None,
+                    region=Box.from_spec(region).to_tuple() if region else None,
                     grayscale=grayscale,
                     confidence=confidence,
                 )
             )
-            return [Region.from_tuple(loc) for loc in locations[:limit]]
+            return [Box.from_tuple(loc) for loc in locations[:limit]]
         except gui.ImageNotFoundException:
             return None
         except FileNotFoundError:
             return None
     else:
         screenshot = gui.screenshot(
-            region=Region.from_spec(region).to_tuple() if region else None
+            region=Box.from_spec(region).to_tuple() if region else None
         )
         logger.info(
-            f"Searching in region: {Region.from_spec(region).to_tuple() if region else None}.\nGiven region: {region}"
+            f"Searching in region: {Box.from_spec(region).to_tuple() if region else None}.\nGiven region: {region}"
         )
         detections = locator(reference, screenshot)
         logger.info("total detections: %d", len(detections))

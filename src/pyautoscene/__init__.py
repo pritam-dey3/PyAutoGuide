@@ -1,7 +1,7 @@
 from .references import ImageElement, TextElement
-from .region import Region, RegionSpec
 from .scene import Scene
 from .session import Session
+from .shapes import Box, BoxSpec
 from .workflow import WorkFlow
 
 __all__ = [
@@ -9,7 +9,7 @@ __all__ = [
     "Session",
     "ImageElement",
     "TextElement",
-    "RegionSpec",
-    "Region",
+    "BoxSpec",
+    "Box",
     "WorkFlow",
 ]

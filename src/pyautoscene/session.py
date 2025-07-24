@@ -13,8 +13,8 @@ from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
 from .references import ImageElement, ReferenceElement
-from .region import Region
 from .scene import Scene
+from .shapes import Box
 
 
 class SceneRecognitionError(Exception):
@@ -50,7 +50,7 @@ def build_dynamic_state_machine(
     return session_sm, transitions, leaf_actions
 
 
-def get_current_scene(scenes: list[Scene], region: Region | None = None) -> Scene:
+def get_current_scene(scenes: list[Scene], region: Box | None = None) -> Scene:
     """Get the current scene from the list of scenes."""
     current_scenes = [scene for scene in scenes if scene.is_on_screen(region)]
     if len(current_scenes) == 1:
@@ -69,7 +69,7 @@ class Session:
     def __init__(
         self,
         scenes: list[Scene],
-        image_locator: Callable[[Image.Image, Image.Image], list[Region]] | None = None,
+        image_locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
     ):
         self._scenes_list = scenes
         self._scenes_dict = {scene.name: scene for scene in scenes}

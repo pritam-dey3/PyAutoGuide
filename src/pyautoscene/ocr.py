@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from .region import Region
+from .shapes import Box
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def hash_image(img: Image.Image) -> str:
     return sha256(img.tobytes()).hexdigest()
 
 
-def convert_points_to_ltwh(points: np.ndarray) -> Region:
+def convert_points_to_ltwh(points: np.ndarray) -> Box:
     if points.shape[0] == 0:
         raise ValueError("Points array is empty")
 
@@ -36,19 +36,19 @@ def convert_points_to_ltwh(points: np.ndarray) -> Region:
     x_max = np.max(points[:, 0])
     y_max = np.max(points[:, 1])
 
-    return Region(left=x_min, top=y_min, width=x_max - x_min, height=y_max - y_min)
+    return Box(left=x_min, top=y_min, width=x_max - x_min, height=y_max - y_min)
 
 
 class OCR:
     engine: RapidOCR | None = None
-    img_cache: dict[str, tuple[tuple[str, Region], ...]] = {}
+    img_cache: dict[str, tuple[tuple[str, Box], ...]] = {}
 
     def __new__(cls):
         if cls.engine is None:
             cls.engine = RapidOCR(config_path=ocr_config_path.as_posix())
         return super().__new__(cls)
 
-    def recognize_text(self, img: Image.Image) -> tuple[tuple[str, Region], ...]:
+    def recognize_text(self, img: Image.Image) -> tuple[tuple[str, Box], ...]:
         img_gray = img.convert("L")
         img_hash = hash_image(img_gray)
         if img_hash in self.img_cache:
