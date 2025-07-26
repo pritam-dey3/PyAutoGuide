@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Callable, override
+from typing import Callable, Literal, overload, override
+from warnings import deprecated
 
 import pyautogui as gui
 import pyscreeze
@@ -8,8 +9,15 @@ from PIL import Image
 
 from ._types import Direction, MouseButton
 from .actions import locate_on_screen, move_and_click
+from .box_array import BoxArray
 from .shapes import Box, BoxSpec
 from .utils import get_file
+
+
+class ElementNotFoundError(Exception):
+    """Exception raised when an element is not found on the screen."""
+
+    pass
 
 
 class ReferenceElement(ABC):
@@ -17,18 +25,40 @@ class ReferenceElement(ABC):
 
     name: str
 
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ) -> BoxArray: ...
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ) -> BoxArray | None: ...
+
     @abstractmethod
-    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ):
         """Detect the presence of the reference element."""
         raise NotImplementedError("Subclasses must implement this method")
 
+    @deprecated("Use `locate().click()` instead.")
     def locate_and_click(
         self,
-        offset: int = 0,
         region: BoxSpec | None = None,
+        *,
         clicks: int = 1,
         button: MouseButton = "left",
         towards: Direction | None = None,
+        offset: int = 0,
         index: int = 0,
     ):
         """Locate the reference element and click on it."""
@@ -36,13 +66,11 @@ class ReferenceElement(ABC):
         assert regions is not None and len(regions) > index, (
             f"Element {self} not found on screen or insufficient detections {len(regions) if regions else 0} < {index + 1}."
         )
-        move_and_click(
-            target_box=regions[index],
-            clicks=clicks,
-            button=button,
-            offset=offset,
-            towards=towards,
-        )
+        if towards is not None:
+            target_box = regions[index].offset(towards, offset)
+        else:
+            target_box = regions[index]
+        move_and_click(target=target_box, clicks=clicks, button=button)
 
 
 class ImageElement(ReferenceElement):
@@ -53,7 +81,7 @@ class ImageElement(ReferenceElement):
         path: str | list[str],
         confidence: float = 0.999,
         region: BoxSpec | None = None,
-        locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
+        locator: Callable[[Image.Image, Image.Image], BoxArray] | None = None,
     ):
         self.path = path
         self.confidence = confidence
@@ -61,15 +89,35 @@ class ImageElement(ReferenceElement):
         self.locator = locator
         self.name = Path(path).stem if isinstance(path, str) else Path(path[0]).stem
 
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ) -> BoxArray: ...
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ) -> BoxArray | None: ...
+
     @override
-    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ):
         """Method to detect the presence of the image in the current screen."""
         if isinstance(self.path, str):
             path = [self.path]  # Ensure path is a list for consistency
         else:
             path = self.path
 
-        all_locations: list[Box] = []
+        all_locations: BoxArray = BoxArray()
         for image_path in path:
             try:
                 locations = locate_on_screen(
@@ -80,7 +128,7 @@ class ImageElement(ReferenceElement):
                     limit=n - len(all_locations),  # Only get remaining needed locations
                 )
                 if locations is not None:
-                    all_locations.extend(locations)
+                    all_locations += locations
 
                 # If we have enough detections, return them
                 if len(all_locations) >= n:
@@ -88,7 +136,15 @@ class ImageElement(ReferenceElement):
             except (gui.ImageNotFoundException, pyscreeze.ImageNotFoundException):
                 continue
 
-        return all_locations if all_locations else None
+        if all_locations:
+            return all_locations
+        else:
+            if error == "coerce":
+                return None
+            else:
+                raise ElementNotFoundError(
+                    f"{self} not found on screen in region {region}."
+                )
 
     def __repr__(self) -> str:
         return f"ImageElement: {self.path}"
@@ -107,7 +163,7 @@ class ReferenceImageDir:
         image_name: str,
         region: BoxSpec | None = None,
         confidence: float = 0.999,
-        locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
+        locator: Callable[[Image.Image, Image.Image], BoxArray] | None = None,
     ) -> ImageElement:
         """Get an ImageElement from the reference directory."""
         if image_name not in self.images:
@@ -122,7 +178,7 @@ def image(
     path: str,
     region: BoxSpec | None = None,
     confidence: float = 0.999,
-    locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
+    locator: Callable[[Image.Image, Image.Image], BoxArray] | None = None,
 ) -> ImageElement:
     """Create an image reference element."""
     return ImageElement(path, confidence=confidence, region=region, locator=locator)
@@ -146,7 +202,29 @@ class TextElement(ReferenceElement):
             self.text = self.text.lower()
         self.name = text
 
-    def locate(self, region: BoxSpec | None = None, n: int = 1) -> list[Box] | None:
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ) -> BoxArray: ...
+
+    @overload
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "coerce",
+    ) -> BoxArray | None: ...
+
+    @override
+    def locate(
+        self,
+        region: BoxSpec | None = None,
+        n: int = 1,
+        error: Literal["raise", "coerce"] = "raise",
+    ):
         """Method to detect the presence of the text in the current screen."""
         from .ocr import OCR
 
@@ -165,9 +243,17 @@ class TextElement(ReferenceElement):
                 found_regions.append(detected_region.resolve(base=region))
             # If we have enough detections, return them
             if len(found_regions) >= n:
-                return found_regions[:n]
+                return BoxArray(found_regions[:n])
 
-        return found_regions if found_regions else None
+        if found_regions:
+            return BoxArray(found_regions)
+        else:
+            if error == "coerce":
+                return None
+            else:
+                raise ElementNotFoundError(
+                    f"{self} not found on screen in region {region}."
+                )
 
     def __repr__(self) -> str:
         return f"{{TextElement: {self.text}}}"

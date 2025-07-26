@@ -12,6 +12,8 @@ from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
+from pyautoscene.box_array import BoxArray
+
 from .references import ImageElement, ReferenceElement
 from .scene import Scene
 from .shapes import Box
@@ -69,7 +71,7 @@ class Session:
     def __init__(
         self,
         scenes: list[Scene],
-        image_locator: Callable[[Image.Image, Image.Image], list[Box]] | None = None,
+        image_locator: Callable[[Image.Image, Image.Image], BoxArray] | None = None,
     ):
         self._scenes_list = scenes
         self._scenes_dict = {scene.name: scene for scene in scenes}

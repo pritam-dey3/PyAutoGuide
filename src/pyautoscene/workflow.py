@@ -68,11 +68,15 @@ class WorkFlow:
 
     def get_visible_elements(self) -> list[ReferenceElement]:
         """Return a list of currently visible elements in the workflow."""
-        return [elem for elem in self.elements.values() if elem.locate(n=1) is not None]
+        return [
+            elem
+            for elem in self.elements.values()
+            if elem.locate(n=1, error="coerce") is not None
+        ]
 
     def expect(self, elem: ReferenceElement, **kwargs):
         """Navigate to a specific scene."""
-        if elem.locate(n=1) is not None:
+        if elem.locate(n=1, error="coerce") is not None:
             return
 
         graph = get_nx_graph(self._sm)

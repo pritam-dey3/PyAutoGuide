@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Self
 
 import numpy as np
 import pyautogui as gui
 from pyscreeze import Box as BoxTuple
+
+from pyautoscene.utils import direction_to_vector
 
 from ._types import Direction, MouseButton
 
@@ -29,9 +32,9 @@ class Box:
         return cls(left=box.left, top=box.top, width=box.width, height=box.height)
 
     @property
-    def center(self) -> tuple[int, int]:
+    def center(self) -> Point:
         """Get the center coordinates of the box."""
-        return (self.left + self.width // 2, self.top + self.height // 2)
+        return Point(x=self.left + self.width // 2, y=self.top + self.height // 2)
 
     @classmethod
     def from_spec(cls, spec: BoxSpec, shape: tuple[int, int] | None = None) -> Box:
@@ -67,25 +70,85 @@ class Box:
             height=self.height,
         )
 
-    def click(
-        self,
-        clicks: int = 1,
-        button: MouseButton = "left",
-        offset: int = 0,
-        towards: Direction | None = None,
-        base: BoxSpec | None = None,
-    ):
+    def click(self, clicks: int = 1, button: MouseButton = "left") -> Self:
         """Click at the center of the box with optional offset."""
         from .actions import move_and_click
 
-        target_box = self.resolve(base)
-        move_and_click(
-            target_box=target_box,
-            clicks=clicks,
-            button=button,
-            offset=offset,
-            towards=towards,
+        move_and_click(target=self, clicks=clicks, button=button)
+        return self
+
+    def offset(self, direction: Direction, offset: int = 0) -> Box:
+        """Return a new Box offset in the specified direction."""
+        vector = direction_to_vector(direction)
+        return Box(
+            left=self.left + vector[0] * offset,
+            top=self.top + vector[1] * offset,
+            width=self.width,
+            height=self.height,
+        )
+
+    def __contains__(self, point: Point) -> bool:
+        """Check if a Point is inside the Box."""
+        return (
+            self.left <= point.x <= self.left + self.width
+            and self.top <= point.y <= self.top + self.height
         )
 
 
-BoxSpec = Box | str
+type BoxSpec = Box | str
+
+
+@dataclass(frozen=True, slots=True)
+class Point:
+    x: int
+    y: int
+
+    def to_tuple(self) -> tuple[int, int]:
+        """Convert to a tuple."""
+        return (self.x, self.y)
+
+    def __add__(self, other: Point | np.ndarray) -> Point:
+        """Add another Point or a numpy array to this Point."""
+        if isinstance(other, Point):
+            return Point(self.x + other.x, self.y + other.y)
+        elif isinstance(other, np.ndarray):
+            return Point(self.x + int(other[0]), self.y + int(other[1]))
+        raise TypeError("Unsupported type for addition with Point.")
+
+    def __radd__(self, other: Point | np.ndarray) -> Point:
+        """Add this Point to another Point or a numpy array."""
+        return self.__add__(other)
+
+    def __iter__(self):
+        """Return an iterator over the Point coordinates."""
+        yield self.x
+        yield self.y
+
+    @classmethod
+    def from_tuple(cls, point: tuple[int, int]) -> Point:
+        """Create a Point from a tuple."""
+        return cls(x=point[0], y=point[1])
+
+    def __array__(self, dtype=None, copy=None):
+        return np.array([self.x, self.y], dtype=dtype, copy=copy)
+
+    def resolve(self, base: Point | None) -> Point:
+        """Return a new Point offset by another Point (base)."""
+        if base is None:
+            return self
+        if isinstance(base, tuple):
+            base = Point.from_tuple(base)
+        return Point(self.x + base.x, self.y + base.y)
+
+    def offset(self, direction: Direction, offset: int = 0) -> Point:
+        """Return a new Point offset in the specified direction."""
+        vector = direction_to_vector(direction)
+        return self + vector * offset
+
+    def click(self, clicks: int = 1, button: MouseButton = "left"):
+        """Click at the Point location."""
+
+        from pyautoscene.actions import move_and_click
+
+        move_and_click(target=self, clicks=clicks, button=button)
+        return self

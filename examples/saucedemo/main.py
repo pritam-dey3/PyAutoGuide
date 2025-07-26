@@ -17,11 +17,13 @@ wf = WorkFlow("SauceDemo")
 )
 def perform_login(username: str, password: str):
     """Performs the login action to transition from Login to Dashboard."""
-    refs("username").locate_and_click()
+    # refs("username").locate().click()
+    refs("username").locate().click()
     gui.write(username, interval=0.1)
     gui.press("tab")
     gui.write(password, interval=0.1)
-    text("Swag Labs").locate_and_click(index=1, offset=400, towards="bottom")
+    # text("Swag Labs").locate_and_click(index=1, offset=400, towards="bottom")
+    text("Swag Labs").locate(n=2).select(i=1).offset("bottom", 400).click()
 
 
 @wf.action()
@@ -30,12 +32,12 @@ def add_products_to_cart(target: str):
     if target == "backpack":
         text(
             "Sauce Labs Bike Light", region="x:2/2 y:(2-4)/5", case_sensitive=False
-        ).locate_and_click()
+        ).locate().click()
     else:
         text(
             "Sauce Labs Bike Light", region="x:2/2 y:(2-4)/5", case_sensitive=False
-        ).locate_and_click()
-    refs("add_to_cart_button").locate_and_click(region="x:2/3 y:(2-3)/3", clicks=1)
+        ).locate().click()
+    refs("add_to_cart_button").locate(region="x:2/3 y:(2-3)/3").click(clicks=1)
 
 
 @wf.navigation(
@@ -43,13 +45,13 @@ def add_products_to_cart(target: str):
 )
 def view_cart():
     """Views the cart."""
-    refs("cart_icon").locate_and_click()
+    refs("cart_icon").locate().click()
 
 
 @wf.action()
 def checkout():
     """Checks out the items in the cart."""
-    refs("checkout_button").locate_and_click()
+    refs("checkout_button").locate().click()
 
 
 gui.hotkey("alt", "tab")
