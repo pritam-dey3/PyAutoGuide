@@ -2,15 +2,19 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
+import cv2
 import numpy as np
 import pyautogui as gui
 from pyscreeze import Box as BoxTuple
 
-from pyautoscene.utils import direction_to_vector
+from pyautoscene.utils import direction_to_vector, get_search_region_in_direction
 
 from ._types import Direction, MouseButton
+
+if TYPE_CHECKING:
+    from .box_array import BoxArray
 
 axis_pattern = re.compile(r"(?P<d>[xy]):\(?(?P<i>\d+)(?:-(?P<j>\d+))?\)?/(?P<n>\d+)")
 
@@ -77,12 +81,12 @@ class Box:
         move_and_click(target=self, clicks=clicks, button=button)
         return self
 
-    def offset(self, direction: Direction, offset: int = 0) -> Box:
+    def offset(self, direction: Direction, shift: int = 0) -> Box:
         """Return a new Box offset in the specified direction."""
         vector = direction_to_vector(direction)
         return Box(
-            left=self.left + vector[0] * offset,
-            top=self.top + vector[1] * offset,
+            left=self.left + vector[0] * shift,
+            top=self.top + vector[1] * shift,
             width=self.width,
             height=self.height,
         )
@@ -93,6 +97,72 @@ class Box:
             self.left <= point.x <= self.left + self.width
             and self.top <= point.y <= self.top + self.height
         )
+
+    def intersect(self, other: Box) -> Box:
+        """Return the intersection of two Boxes."""
+        left = max(self.left, other.left)
+        top = max(self.top, other.top)
+        right = min(self.left + self.width, other.left + other.width)
+        bottom = min(self.top + self.height, other.top + other.height)
+
+        if left < right and top < bottom:
+            return Box(left=left, top=top, width=right - left, height=bottom - top)
+        raise ValueError("Boxes do not intersect.")
+
+    def find_color(
+        self,
+        color: tuple[int, int, int],
+        towards: Direction,
+        *,
+        region: BoxSpec | None = None,
+    ) -> BoxArray:
+        """Find the median pixel with given color in the direction."""
+        from .box_array import BoxArray
+
+        # Determine search region based on direction
+        assert isinstance(towards, str), "integer direction is not supported"
+        search_region = get_search_region_in_direction(self, towards, size=gui.size())
+
+        # Apply optional region constraint
+        if region:
+            given_region = Box.from_spec(region)
+            search_region = search_region.intersect(given_region)
+
+        # Take screenshot of search region
+        img = gui.screenshot(region=search_region.to_tuple())
+
+        # Find connected components of the target color
+        color_array = np.array(color)
+        img_color_mask = np.all(np.array(img) == color_array, axis=-1).astype(np.uint8)
+        n, img_label = cv2.connectedComponents(
+            img_color_mask, connectivity=8, ltype=cv2.CV_32S
+        )
+
+        # Find all bounding boxes of connected components
+        det_boxes = []
+        for i in range(1, n):
+            mask = img_label == i
+            coords = np.column_stack(np.where(mask))
+            if coords.size == 0:
+                continue
+            y_min, x_min = coords.min(axis=0)
+            y_max, x_max = coords.max(axis=0)
+            # Convert to absolute coordinates
+            det_boxes.append(
+                Box(
+                    left=x_min,
+                    top=y_min,
+                    width=x_max - x_min + 1,
+                    height=y_max - y_min + 1,
+                )
+            )
+
+        if not det_boxes:
+            raise ValueError(
+                f"No pixels with color {color} found in direction {towards}"
+            )
+
+        return BoxArray([b.resolve(search_region) for b in det_boxes])
 
 
 type BoxSpec = Box | str
@@ -148,7 +218,7 @@ class Point:
     def click(self, clicks: int = 1, button: MouseButton = "left"):
         """Click at the Point location."""
 
-        from pyautoscene.actions import move_and_click
+        from .actions import move_and_click
 
         move_and_click(target=self, clicks=clicks, button=button)
         return self

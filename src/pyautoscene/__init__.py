@@ -1,4 +1,4 @@
-from .references import ImageElement, TextElement
+from .references import ImageElement, ReferenceImageDir, TextElement, image, text
 from .scene import Scene
 from .session import Session
 from .shapes import Box, BoxSpec
@@ -12,4 +12,7 @@ __all__ = [
     "BoxSpec",
     "Box",
     "WorkFlow",
+    "ReferenceImageDir",
+    "text",
+    "image",
 ]

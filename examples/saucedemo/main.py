@@ -45,7 +45,10 @@ def add_products_to_cart(target: str):
 )
 def view_cart():
     """Views the cart."""
-    refs("cart_icon").locate().click()
+    # refs("cart_icon").locate().click()
+    text("Remove", region="x:2/3 y:3/3").locate().first().find_color(
+        color=(226, 35, 26), towards="top-right", region="x:5/5 y:1/4"
+    ).click()
 
 
 @wf.action()

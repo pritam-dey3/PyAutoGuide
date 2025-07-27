@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterable, Sequence
 from typing import Callable
 
+from pyautoscene._types import Direction
+
 from .shapes import Box, BoxSpec
+from .utils import line_intersects_box
 
 
 class BoxArray(Sequence[Box]):
@@ -31,6 +35,18 @@ class BoxArray(Sequence[Box]):
             raise TypeError("All items must be instances of Box.")
         return BoxArray(new_boxes + self._boxes)
 
+    def first(self) -> Box:
+        """Returns the first Box in the array."""
+        if not self._boxes:
+            raise IndexError("BoxArray is empty.")
+        return self._boxes[0]
+
+    def last(self) -> Box:
+        """Returns the last Box in the array."""
+        if not self._boxes:
+            raise IndexError("BoxArray is empty.")
+        return self._boxes[-1]
+
     def select(self, *, i: int) -> Box:
         """Returns the Box at the specified index."""
         return self._boxes[i]
@@ -45,6 +61,18 @@ class BoxArray(Sequence[Box]):
         """Returns a new BoxArray with boxes that satisfy the given condition."""
         new_boxes = [box for box in self._boxes if condition(box)]
         return BoxArray(new_boxes)
+
+    def relative_to(self, direction: Direction, *, of: BoxSpec) -> BoxArray:
+        """Returns a new BoxArray with boxes relative to the specified direction and origin."""
+        if isinstance(of, str):
+            of = Box.from_spec(of)
+        return BoxArray(
+            (
+                box
+                for box in self._boxes
+                if line_intersects_box(box, direction, of.center)
+            )
+        )
 
     def __getattr__(self, name: str):
         """Dynamically proxies method calls to the specified Box."""
@@ -61,7 +89,20 @@ class BoxArray(Sequence[Box]):
 
             new_boxes = []
             for box in self._boxes:
-                new_boxes.append(getattr(box, name)(*args, **kwargs))
+                try:
+                    return_value = getattr(box, name)(*args, **kwargs)
+                    if isinstance(return_value, Box):
+                        new_boxes.append(return_value)
+                    elif isinstance(return_value, BoxArray):
+                        new_boxes.extend(return_value._boxes)
+                    else:
+                        raise TypeError(
+                            f"Method {name} returned unexpected type: {type(return_value)}"
+                        )
+                except Exception as e:
+                    warnings.warn(
+                        f"Method {name} raised an exception: {e}", stacklevel=2
+                    )
             return BoxArray(new_boxes)
 
         return method_proxy

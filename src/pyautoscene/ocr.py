@@ -31,10 +31,10 @@ def convert_points_to_ltwh(points: np.ndarray) -> Box:
     if points.shape[0] == 0:
         raise ValueError("Points array is empty")
 
-    x_min = np.min(points[:, 0])
-    y_min = np.min(points[:, 1])
-    x_max = np.max(points[:, 0])
-    y_max = np.max(points[:, 1])
+    x_min = int(np.min(points[:, 0]))
+    y_min = int(np.min(points[:, 1]))
+    x_max = int(np.max(points[:, 0]))
+    y_max = int(np.max(points[:, 1]))
 
     return Box(left=x_min, top=y_min, width=x_max - x_min, height=y_max - y_min)
 
