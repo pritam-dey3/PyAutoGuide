@@ -1,182 +1,228 @@
-# PyAutoScene
+# PyAutoGuide
 
-**Advanced GUI Automation with Scene-Based State Management**
+**Advanced GUI Automation with Workflow-Based State Management**
 
-PyAutoScene is a Python library that provides a declarative approach to GUI automation by modeling application interfaces as scenes and transitions. It combines element detection with state machine patterns to create robust, maintainable automation scripts.
+PyAutoGuide is a Python library that provides a declarative approach to GUI automation by modeling application workflows as state transitions between UI elements. It combines advanced element detection with state machine patterns to create robust, maintainable automation scripts.
 
 ## 🌟 Features
 
-- **Scene-Based Architecture**: Model your application as a collection of scenes with defined elements and transitions
-- **Visual Element Detection**: Supports both image-based and text-based element recognition
-- **Region Specification**: Flexible region syntax for targeting specific screen areas
-- **Automatic Navigation**: Intelligent pathfinding between scenes using graph algorithms
-- **Action Decorators**: Clean, declarative syntax for defining scene actions and transitions
+- **Workflow-Based Architecture**: Model your application as workflows with state transitions between UI elements
+- **Advanced Visual Element Detection**: Supports both image-based and text-based element recognition with sophisticated matching
+- **Flexible Region Specification**: Mathematical region syntax for targeting specific screen areas with precision
+- **Automatic Navigation**: Intelligent pathfinding between UI states using graph algorithms
+- **Action & Navigation Decorators**: Clean, declarative syntax for defining workflows and state transitions
+- **Reference Image Management**: Directory-based image reference system for organized asset management
+- **Object-Oriented Element Operations**: Fluent API with method chaining for complex element interactions
+- **Color-Based Detection**: Advanced color finding capabilities with directional search
+- **Multiple Result Handling**: Sophisticated selection strategies for multiple matching elements
+- **Integration Ready**: Seamless integration with PyAutoGUI and other automation tools
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-pip install pyautoscene
+pip install pyautoguide
 ```
 
 ### Basic Example
 
-Here's how to automate a simple login flow:
+Here's how to automate a simple login flow using the new workflow-based approach:
 
 ```python
+from pathlib import Path
 import pyautogui as gui
-from pyautoscene import ImageElement, TextElement, Scene, Session
-from pyautoscene.utils import locate_and_click
+from pyautoguide import ReferenceImageDir, WorkFlow, text
 
-# Define scenes
-login = Scene(
-    "Login",
-    elements=[
-        TextElement("Welcome to Login"),
-        ImageElement("references/login_button.png"),
-    ],
-    initial=True,
+# Initialize reference directory for organized image management
+refs = ReferenceImageDir(Path("references"))
+
+# Create workflow
+workflow = WorkFlow("LoginFlow")
+
+# Define navigation between UI states
+@workflow.navigation(
+    text("Username", region="x:2/3 y:(1-2)/3"),  # Source state
+    text("Dashboard", region="x:1/3 y:1/3")      # Target state
 )
-
-dashboard = Scene(
-    "Dashboard",
-    elements=[
-        TextElement("Dashboard"),
-        ImageElement("references/user_menu.png"),
-    ],
-)
-
-# Define actions with transitions
-@login.action(transitions_to=dashboard)
 def perform_login(username: str, password: str):
     """Performs login and transitions to dashboard."""
-    locate_and_click("references/username_field.png")
+    refs("username_field").locate().click()
     gui.write(username, interval=0.1)
     gui.press("tab")
     gui.write(password, interval=0.1)
     gui.press("enter")
 
-# Create session and navigate
-session = Session(scenes=[login, dashboard])
-session.expect(dashboard, username="user", password="pass")
+# Define an action that doesn't change state
+@workflow.action()
+def add_item_to_cart(item_name: str):
+    """Adds an item to cart without changing UI state."""
+    text(item_name, case_sensitive=False).locate().click()
+    refs("add_to_cart_button").locate(region="x:2/3 y:(2-3)/3").click()
+
+# Execute workflow with automatic navigation
+workflow.expect(
+    text("Dashboard", region="x:1/3 y:1/3"),
+    username="user",
+    password="pass"
+)
+
+# Invoke actions directly
+workflow.invoke("add_item_to_cart", item_name="Product Name")
 ```
 
 ## 📖 Core Concepts
 
-### Scenes
+### WorkFlows
 
-A **Scene** represents a distinct state in your application's UI. Each scene contains:
-
-- **Elements**: Visual markers that identify when the scene is active
-- **Actions**: Functions that can be performed in this scene
-- **Transitions**: Connections to other scenes
+A **WorkFlow** represents the automation logic for your application. Unlike the deprecated Scene-based approach, workflows focus on element transitions and actions:
 
 ```python
-scene = Scene(
-    "SceneName",
-    elements=[
-        ImageElement("path/to/image.png"),
-        TextElement("Expected Text"),
-    ],
-    initial=False  # Set to True for starting scene
-)
+from pyautoguide import WorkFlow
+
+workflow = WorkFlow("MyApp")
 ```
 
-### Reference Elements
+### Reference Elements & Image Management
 
-PyAutoScene supports two types of reference elements:
+PyAutoGuide provides sophisticated element detection and management:
 
-#### ImageElement
+#### ReferenceImageDir
 
-Detects scenes using image matching:
+Organize your reference images in directories:
 
 ```python
-ImageElement("path/to/reference/image.png")
+from pathlib import Path
+from pyautoguide import ReferenceImageDir
+
+refs = ReferenceImageDir(Path("references"))
+# Use as: refs("button_name").locate().click()
 ```
 
-#### TextElement
+#### Direct Element Creation
 
-Detects scenes using text recognition:
+Create elements directly for text and images:
 
 ```python
-TextElement("Expected text on screen")
+from pyautoguide import text, image
+
+# Text elements with advanced options
+text_elem = text("Expected Text", case_sensitive=False)
+
+# Image elements
+image_elem = image("path/to/image.png")
 ```
 
-Both elements support region specification for limiting search areas. You can specify regions using a string format like `"x:2/3 y:(1-2)/3"` to easily define screen regions:
+### Advanced Region Specification
+
+PyAutoGuide supports sophisticated region syntax with mathematical expressions:
 
 ```python
-# Search for text in the top-left third of the screen
-TextElement("Login", region="x:1/3 y:1/3")
+# Search in top-left third
+text("Login", region="x:1/3 y:1/3")
 
-# Search in a horizontal band across the middle third of the screen
-ImageElement("button.png", region="y:2/3")
+# Search in middle horizontal band
+text("Welcome", region="y:2/3")
 
-# Search in a specific area spanning columns 1-2 out of 3 columns
-TextElement("Welcome", region="x:(1-2)/3 y:1/3")
+# Search spanning multiple columns/rows
+text("Header", region="x:(1-2)/3 y:1/3")
+
+# Complex mathematical expressions
+text("Content", region="x:(2-4)/5 y:(1-2)/3")
 ```
 
-### Actions and Transitions
+### Object-Oriented Element Operations
 
-Actions are decorated functions that define what can be done in a scene:
+PyAutoGuide provides a fluent API for complex element interactions:
 
 ```python
-@scene.action(transitions_to=target_scene)  # Action that changes scenes
-def action_with_transition():
-    # Perform GUI operations
+# Multiple result handling
+text("Button").locate(n=2).select(i=1).click()
+
+# Directional operations
+element.locate().offset("bottom", 400).click()
+
+# Color-based detection
+element.locate().find_color(
+    color=(226, 35, 26),
+    towards="top-right",
+    region="x:5/5 y:1/4"
+).click()
+
+# Chained operations
+text("Item").locate().first().offset("right", 50).click()
+```
+
+### Navigation and Actions
+
+The workflow system uses decorators to define state transitions and actions:
+
+#### Navigation Decorators
+
+Define transitions between UI states:
+
+```python
+@workflow.navigation(source_element, target_element)
+def transition_function(**params):
+    # Perform GUI operations that lead to state change
     pass
+```
 
-@scene.action()  # Action that stays in current scene
-def action_without_transition():
-    # Perform GUI operations
+#### Action Decorators
+
+Define actions that don't change UI state:
+
+```python
+@workflow.action()
+def action_function(**params):
+    # Perform GUI operations without state change
     pass
 ```
 
-### Session Management
+### WorkFlow Execution
 
-The **Session** class manages the state machine and provides navigation:
+Execute workflows with intelligent navigation:
 
 ```python
-session = Session(scenes=[scene1, scene2, scene3])
+# Navigate to specific UI state (finds optimal path automatically)
+workflow.expect(target_element, **action_params)
 
-# Navigate to a specific scene (finds optimal path)
-session.expect(target_scene, **action_params)
+# Invoke specific actions
+workflow.invoke("action_name", **action_params)
 
-# Invoke an action in the current scene
-session.invoke("action_name", **action_params)
-
-# Get current scene
-current = session.current_scene
+# Wait for elements to appear
+workflow.wait_for(element, timeout=60, interval=1)
 ```
 
-### Automatic Scene Detection
+### Element Detection
 
-PyAutoScene automatically detects which scene is currently active:
+PyAutoGuide automatically detects visible elements and manages workflow state:
 
 ```python
-from pyautoscene.session import get_current_scene
+# Get currently visible elements
+visible_elements = workflow.get_visible_elements()
 
-current_scene = get_current_scene(scenes)
-print(f"Currently on: {current_scene.name}")
+# Check if element is currently visible
+is_visible = element.locate(n=1, error="coerce") is not None
 ```
 
-### Path Finding
+### Advanced Path Finding
 
-The library uses NetworkX to find optimal paths between scenes:
+The library uses NetworkX for optimal path finding between UI states:
 
 ```python
-# This will automatically navigate: Login → Dashboard → Cart
-session.expect(cart_scene, username="user", password="pass")
+# Automatically navigates through intermediate states
+workflow.expect(final_state, **params)
 ```
 
 ### Error Handling
 
 ```python
-from pyautoscene.session import SceneRecognitionError
+from pyautoguide.workflow import NavigationError
 
 try:
-    session.expect(target_scene)
-except SceneRecognitionError as e:
+    workflow.expect(target_element)
+except NavigationError as e:
     print(f"Navigation failed: {e}")
 ```
 
@@ -194,14 +240,13 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🔮 Roadmap
 
-- [ ] Enhanced image matching algorithms
-- [ ] TemplateScene
-- [ ] Relation between images
-- [ ] Multiple session support
+- [x] Spatial relationship modeling between elements
+- [ ] Multiple workflow support
+- [ ] Advanced debugging and visualization tools
 
 ## 🙏 Credits
 
-PyAutoScene builds on the work of several open-source projects:
+PyAutoGuide builds on the work of several open-source projects:
 
 - [PyAutoGUI](https://github.com/asweigart/pyautogui) by Al Sweigart
 - [python-statemachine](https://github.com/fgmacedo/python-statemachine) by Filipe Macedo
