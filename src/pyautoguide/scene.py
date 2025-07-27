@@ -4,10 +4,9 @@ from typing import Callable, TypedDict
 
 from statemachine import State
 
-from pyautoscene.utils import is_valid_variable_name
-
 from .references import ReferenceElement
 from .shapes import Box
+from .utils import is_valid_variable_name
 
 
 class ActionInfo(TypedDict):

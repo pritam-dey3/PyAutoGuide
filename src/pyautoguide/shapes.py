@@ -9,9 +9,8 @@ import numpy as np
 import pyautogui as gui
 from pyscreeze import Box as BoxTuple
 
-from pyautoscene.utils import direction_to_vector, get_search_region_in_direction
-
 from ._types import Direction, MouseButton
+from .utils import direction_to_vector, get_search_region_in_direction
 
 if TYPE_CHECKING:
     from .box_array import BoxArray

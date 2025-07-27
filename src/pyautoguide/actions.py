@@ -8,9 +8,8 @@ import numpy as np
 import pyautogui as gui
 from PIL import Image
 
-from pyautoscene.box_array import BoxArray
-
 from ._types import Direction, MouseButton
+from .box_array import BoxArray
 from .constants import LOCATE_AND_CLICK_DELAY, POINTER_SPEED
 from .shapes import Box, BoxSpec, Point
 

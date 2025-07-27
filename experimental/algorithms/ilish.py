@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from pyautoscene.shapes import Box
+from pyautoguide.shapes import Box
 
 type OpenCvTransformKernel = Literal["CROSS", "RECT", "ELLIPSE"]
 type OpenCvTransformMorphology = Literal[

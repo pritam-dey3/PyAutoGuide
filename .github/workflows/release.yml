@@ -43,7 +43,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/pyautoscene
+      url: https://pypi.org/p/pyautoguide
 
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing

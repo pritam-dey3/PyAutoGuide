@@ -4,8 +4,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from typing import Callable
 
-from pyautoscene._types import Direction
-
+from ._types import Direction
 from .shapes import Box, BoxSpec
 from .utils import line_intersects_box
 

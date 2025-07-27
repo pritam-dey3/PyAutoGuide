@@ -88,9 +88,9 @@ class WorkFlow:
                 nx.all_simple_paths(graph, source=present_elem.name, target=elem.name)
             )
         if len(all_paths) == 0:
-            raise NavigationError(f"No path found from {present_elem} to {elem}")
+            raise NavigationError(f"No path found from present screen to {elem}")
         elif len(all_paths) > 1:
-            raise NavigationError(f"Multiple paths found from {present_elem} to {elem}")
+            raise NavigationError(f"Multiple paths found from present screen to {elem}")
 
         path = all_paths[0]
         events: list[str] = [

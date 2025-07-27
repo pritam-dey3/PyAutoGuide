@@ -12,8 +12,7 @@ from statemachine.factory import StateMachineMetaclass
 from statemachine.states import States
 from statemachine.transition_list import TransitionList
 
-from pyautoscene.box_array import BoxArray
-
+from .box_array import BoxArray
 from .references import ImageElement, ReferenceElement
 from .scene import Scene
 from .shapes import Box

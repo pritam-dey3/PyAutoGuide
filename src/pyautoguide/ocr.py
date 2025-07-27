@@ -15,11 +15,11 @@ try:
     from rapidocr.utils.output import RapidOCROutput
 except ImportError:
     raise ImportError(
-        "RapidOCR is not installed. Please install it using 'pip install pyautoscene[ocr]'."
+        "RapidOCR is not installed. Please install it using 'pip install pyautoguide[ocr]'."
     )
 
 default_ocr_config_path = Path(__file__).parent / "ocr_config.yaml"
-ocr_config_path = Path(os.getenv("PYAUTOSCENE_OCR_CONFIG", default_ocr_config_path))
+ocr_config_path = Path(os.getenv("PYAUTOGUIDE_OCR_CONFIG", default_ocr_config_path))
 logger.info(f"OCR config path: {ocr_config_path}")
 
 

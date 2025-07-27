@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pyautogui as gui
 
-from pyautoscene import ReferenceImageDir, WorkFlow, text
+from pyautoguide import ReferenceImageDir, WorkFlow, text
 
 # Initialize reference directory
 refs = ReferenceImageDir(Path("examples/saucedemo/references"))
