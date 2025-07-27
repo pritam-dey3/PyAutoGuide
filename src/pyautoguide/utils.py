@@ -99,14 +99,19 @@ def get_search_region_in_direction(
     from .shapes import Box
 
     if towards == "top-right":
-        return Box(left=box.left, top=0, width=size[0] - box.left, height=box.top)
+        return Box(
+            left=box.left + box.width,
+            top=0,
+            width=size[0] - (box.left + box.width),
+            height=box.top,
+        )
     elif towards == "top-left":
-        return Box(left=0, top=0, width=box.left + box.width, height=box.top)
+        return Box(left=0, top=0, width=box.left, height=box.top)
     elif towards == "bottom-right":
         return Box(
-            left=box.left,
+            left=box.left + box.width,
             top=box.top + box.height,
-            width=size[0] - box.left,
+            width=size[0] - (box.left + box.width),
             height=size[1] - (box.top + box.height),
         )
     elif towards == "bottom-left":

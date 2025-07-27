@@ -114,8 +114,10 @@ class Box:
             and self.top <= point.y <= self.top + self.height
         )
 
-    def intersect(self, other: Box) -> Box:
+    def intersect(self, other: BoxSpec) -> Box:
         """Return the intersection of two Boxes."""
+        if not isinstance(other, Box):
+            other = Box.from_spec(other)
         left = max(self.left, other.left)
         top = max(self.top, other.top)
         right = min(self.left + self.width, other.left + other.width)
