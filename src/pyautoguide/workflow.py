@@ -119,7 +119,7 @@ class WorkFlow:
         found = False
         while not found:
             if isinstance(element, ReferenceElement):
-                found = element.locate(n=1) is not None
+                found = element.locate(n=1, error="coerce") is not None
             elif isinstance(element, list):
                 for elem in element:
                     assert isinstance(elem, ReferenceElement), (

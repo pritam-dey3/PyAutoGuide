@@ -4,6 +4,8 @@ import warnings
 from collections.abc import Iterable, Sequence
 from typing import Callable
 
+from pyautoguide.references import ReferenceElement
+
 from ._types import Direction
 from .shapes import Box, BoxSpec
 from .utils import line_intersects_box
@@ -61,10 +63,14 @@ class BoxArray(Sequence[Box]):
         new_boxes = [box for box in self._boxes if condition(box)]
         return BoxArray(new_boxes)
 
-    def relative_to(self, direction: Direction, *, of: BoxSpec) -> BoxArray:
+    def relative_to(
+        self, direction: Direction, *, of: BoxSpec | ReferenceElement
+    ) -> BoxArray:
         """Returns a new BoxArray with boxes relative to the specified direction and origin."""
         if isinstance(of, str):
             of = Box.from_spec(of)
+        elif isinstance(of, ReferenceElement):
+            of = of.locate().first()
         return BoxArray(
             (
                 box

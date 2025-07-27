@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Self
 
 import cv2
@@ -12,18 +14,26 @@ from pyscreeze import Box as BoxTuple
 from ._types import Direction, MouseButton
 from .utils import direction_to_vector, get_search_region_in_direction
 
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from .box_array import BoxArray
 
 axis_pattern = re.compile(r"(?P<d>[xy]):\(?(?P<i>\d+)(?:-(?P<j>\d+))?\)?/(?P<n>\d+)")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class Box:
     left: int
     top: int
     width: int
     height: int
+
+    def __init__(self, left: int, top: int, width: int, height: int):
+        object.__setattr__(self, "left", int(left))
+        object.__setattr__(self, "top", int(top))
+        object.__setattr__(self, "width", int(width))
+        object.__setattr__(self, "height", int(height))
 
     def to_tuple(self) -> BoxTuple:
         """Convert to a pyscreeze Box."""
@@ -60,6 +70,13 @@ class Box:
             })
 
         return cls(**default_box)
+
+    def log_screenshot(self, filename: str | Path):
+        """Take a screenshot of the box and save it to a file."""
+        img = gui.screenshot(region=self.to_tuple())
+        img.save(filename)
+        logger.info(f"Screenshot saved to {filename}")
+        return self
 
     def resolve(self, base: BoxSpec | None) -> Box:
         if base is None:
@@ -114,6 +131,7 @@ class Box:
         towards: Direction,
         *,
         region: BoxSpec | None = None,
+        tolerance: int | None = None,
     ) -> BoxArray:
         """Find the median pixel with given color in the direction."""
         from .box_array import BoxArray
@@ -132,7 +150,14 @@ class Box:
 
         # Find connected components of the target color
         color_array = np.array(color)
-        img_color_mask = np.all(np.array(img) == color_array, axis=-1).astype(np.uint8)
+        if tolerance is None:
+            img_color_mask = np.all(np.array(img) == color_array, axis=-1).astype(
+                np.uint8
+            )
+        else:
+            img_color_mask = np.all(
+                np.abs(np.array(img) - color_array) <= tolerance, axis=-1
+            ).astype(np.uint8)
         n, img_label = cv2.connectedComponents(
             img_color_mask, connectivity=8, ltype=cv2.CV_32S
         )
