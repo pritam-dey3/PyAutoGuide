@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Callable, overload
 
 from ._types import Direction, MouseButton
@@ -37,3 +38,4 @@ class BoxArray(Sequence[Box]):
         *,
         region: BoxSpec | None = None,
     ) -> BoxArray: ...
+    def log_screenshot(self, filename: str | Path) -> BoxArray: ...

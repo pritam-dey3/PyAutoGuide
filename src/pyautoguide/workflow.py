@@ -111,6 +111,8 @@ class WorkFlow:
     def wait_for(
         self,
         element: ReferenceElement | list[ReferenceElement],
+        *,
+        raise_if: ReferenceElement | None = None,
         timeout: float = 60,
         interval: float = 1,
         keep_busy: bool = True,
@@ -128,6 +130,10 @@ class WorkFlow:
                 found = any(elem.locate(n=1) is not None for elem in element)
             else:
                 raise TypeError("Target must be a ReferenceElement.")
+
+            if raise_if is not None:
+                if raise_if.locate(n=1, error="coerce") is not None:
+                    raise NavigationError(f"Raise error condition met: {raise_if}")
             start_time = time.time()
             if not found:
                 if time.time() - start_time > timeout:
