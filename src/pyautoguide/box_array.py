@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterable, Sequence
-from typing import Callable
-
-from pyautoguide.references import ReferenceElement
+from typing import TYPE_CHECKING, Callable
 
 from ._types import Direction
 from .shapes import Box, BoxSpec
 from .utils import line_intersects_box
+
+if TYPE_CHECKING:
+    from pyautoguide.references import ReferenceElement
 
 
 class BoxArray(Sequence[Box]):

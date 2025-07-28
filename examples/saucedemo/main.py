@@ -53,7 +53,9 @@ def view_cart():
 @wf.action()
 def checkout():
     """Checks out the items in the cart."""
-    refs("checkout_button").locate().click()
+    refs("checkout_button").locate().first().log_screenshot(
+        "examples/saucedemo/screenshots/checkout.png"
+    ).click()
 
 
 gui.hotkey("alt", "tab")

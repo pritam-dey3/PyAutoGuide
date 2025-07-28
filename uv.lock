@@ -402,7 +402,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/65/ff/cdae0a8c2118a0de7
 
 [[package]]
 name = "pyautoguide"
-version = "0.4.0"
+version = "0.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "graphviz" },
